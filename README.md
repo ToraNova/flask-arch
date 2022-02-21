@@ -1,5 +1,5 @@
 # flask-arch
-[![Build Status](https://travis-ci.org/ToraNova/viauth.svg?branch=master)](https://travis-ci.org/ToraNova/viauth)
+[![Build Status](https://app.travis-ci.com/ToraNova/flask-arch.svg?branch=master)](https://app.travis-ci.com/github/ToraNova/flask-arch)
 
 A project for modular architecture using [flask](https://flask.palletsprojects.com/en/2.0.x/)
 
