@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<h1>Welcome to auth-basic example</h1>
+<a href="{{ url_for('auth_basic.login') }}">login here</a>
+{% endblock %}

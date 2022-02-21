@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<h1>MyArch1</h1>
+<ul>
+   <li><a href="{{ url_for('myarch1.r1') }}">route1</a></li>
+   <li><a href="{{ url_for('myarch1.r2', foo=0) }}">route2</a></li>
+</ul>
+
+<h1>MyArch2</h1>
+<ul>
+   <li><a href="{{ url_for('myarch2.r1') }}">route1</a></li>
+   <li><a href="{{ url_for('myarch2.r2', foo=1) }}">route2</a></li>
+</ul>
+{% endblock %}

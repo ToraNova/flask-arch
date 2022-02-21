@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<h2>Route2 {{ display }}</h2>
+<form method="post">
+    <label>bar</label></br>
+    <input name="bar" required></br>
+    <label>password</label></br>
+    <input name="password" type="password"></br>
+    <button type="submit">login</button>
+</form>
+{% endblock %}
