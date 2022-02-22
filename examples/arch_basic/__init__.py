@@ -17,7 +17,13 @@ class MyArch(BaseArch):
         self._default_tp('r2', 'r2.html') # default template for r2, if key r2 not set on templates
         self._default_rt('r2', f'{arch_name}.r2') # default reroute on r2, if key r2 not set on reroutes
 
+        self._default_tp('missing', 'missing.html') # test what happens if template does not exist
+
     def init_app(self, app):
+
+        @self.bp.route('/missing')
+        def missing():
+            return self.render()
 
         @self.bp.route('/r1')
         def r1():

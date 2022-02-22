@@ -5,5 +5,9 @@
 
 {% block content %}
 <h1>Welcome to auth-basic example</h1>
-<a href="{{ url_for('auth_basic.login') }}">login here</a>
+<h2>Simple</h2>
+<a href="{{ url_for('simple.login') }}">login here</a>
+<h2>With Insert-Update-Delete</h2>
+<a href="{{ url_for('iud.login') }}">login here</a>
+<a href="{{ url_for('iud.register') }}">signup here</a>
 {% endblock %}

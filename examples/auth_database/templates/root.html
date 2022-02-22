@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<h1>welcome to auth-database example</h1>
+<a href="{{ url_for('database_test.login') }}">login here</a>
+<a href="{{ url_for('database_test.register') }}">signup here</a>
+{% endblock %}

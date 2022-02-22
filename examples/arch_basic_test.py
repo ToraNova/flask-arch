@@ -48,6 +48,10 @@ def test_get(client):
     resp = client.get('/myarch2/r2/101')
     assert b'Route2 101' in resp.data
 
+    resp = client.get('/myarch1/missing')
+    assert resp.status_code == 500
+    assert b'template for missing: \'missing.html\' not found' in resp.data
+
 def test_post(client):
     resp = client.post('/myarch1/r2/1')
     assert resp.status_code == 402

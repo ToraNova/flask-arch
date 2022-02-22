@@ -3,29 +3,45 @@
 # author: toranova
 # mailto: chia_jason96@live.com
 
-from flask import Blueprint, redirect, url_for, flash, render_template, request, abort
+import traceback
+from jinja2.exceptions import TemplateNotFound
+from flask import Blueprint, redirect, url_for, flash, render_template, request, abort, current_app
 
 class BaseArch:
 
-    def get_view_name():
+    def client_error(self, e):
+        if current_app.debug:
+            print('client_error', str(e))
+        self.abort(400)
+
+    def server_error(self, e):
+        if current_app.debug:
+            traceback.print_exc()
+            raise e
+        self.abort(500)
+
+    def get_route_key(self):
         vn = request.endpoint.split('.')[-1]
         return vn
 
     def abort(self, code):
         abort(code)
 
-    def flash(self, msg, cat):
+    def flash(self, msg, cat = 'ok'):
         flash(msg, cat)
 
     def render(self, **kwargs):
-        route_key = BaseArch.get_view_name()
+        route_key = self.get_route_key()
         return self._render(route_key, **kwargs)
 
     def _render(self, route_key, **kwargs):
-        return render_template(self._templ[route_key], **kwargs)
+        try:
+            return render_template(self._templ[route_key], **kwargs)
+        except TemplateNotFound:
+            return f'template for {route_key}: \'{self._templ.get(route_key)}\' not found.', 500
 
     def reroute(self, **kwargs):
-        route_key = BaseArch.get_view_name()
+        route_key = self.get_route_key()
         # reroute action
         if isinstance(self._rkarg.get(route_key), dict):
             passd = {}
@@ -38,10 +54,10 @@ class BaseArch:
         return redirect(url_for(self._route[route_key], **kwargs))
 
     def custom(self, tag, *args, **kwargs):
-        route_key = BaseArch.get_view_name()
+        route_key = self.get_route_key()
         if not self.__callback_valid(route_key, tag):
             raise KeyError(f'custom callback for {route_key}.{tag} invalid')
-        return self._ccall[route_key][tag](*args, **kwargs)
+        return self._ccall[route_key][tag](self, *args, **kwargs)
 
     # default functions for flask-arch project dev
     def _default_tp(self, route_key, default):
@@ -54,6 +70,7 @@ class BaseArch:
 
     def __callback_valid(self, route_key, tag):
         if not route_key in self._ccall:
+            self._ccall[route_key] = {}
             return False
         elif not isinstance(self._ccall[route_key], dict):
             return False
