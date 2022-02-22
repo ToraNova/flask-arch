@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-_version = '0.0.2'
+_version = '0.0.3'
 
 setup(
     name='flask-arch',
@@ -28,7 +28,6 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",

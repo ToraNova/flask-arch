@@ -22,8 +22,7 @@ runtest.sh
 
 ## Examples
 * Barebones
-
+    1. [Simple architecture](examples/arch_basic/__init__.py)
 * Authentication
-    1. [Minimal Login (No Database)](examples/basic/__init__.py)
-    2. [With SQLAlchemy](examples/persistdb/__init__.py)
-    3. [Custom Userclass](examples/cuclass/__init__.py)
+    1. [Minimal Login (No Database)](examples/auth_basic/__init__.py)
+    2. [With SQLAlchemy](examples/auth_basic/__init__.py)
