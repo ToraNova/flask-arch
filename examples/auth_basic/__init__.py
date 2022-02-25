@@ -1,8 +1,7 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
 from flask_arch.auth import Arch
-from flask_arch.auth.user import PasswordUser
-from flask_arch.cms import VolatileDictionary
+from flask_arch.auth.user import VolatileUserManager, BasicPasswordUser
 from flask_login import current_user, login_required
 
 def create_app(test_config=None):
@@ -12,17 +11,17 @@ def create_app(test_config=None):
     if test_config:
         app.config.from_mapping(test_config)
 
-    # use a volatile dictionary to handle user, users are ephemeral
-    user_manager = VolatileDictionary(PasswordUser)
+    # use a volatile manager to handle user, users are ephemeral
+    user_manager = VolatileUserManager(BasicPasswordUser)
 
     # this user will persist because it is defined in the script
-    user = PasswordUser('jason', 'hunter2')
+    user = BasicPasswordUser('jason', 'hunter2')
     user_manager.insert(user)
 
     # create arch and initialize the app with it
     minimal = Arch(user_manager, 'simple',
         # disable register, delete and update route
-        routes_disabled = ['delete', 'register', 'update'],
+        routes_disabled = ['register', 'renew', 'remove'],
     )
 
     # both arch may share the same user manager
@@ -30,12 +29,13 @@ def create_app(test_config=None):
         templates = {
             'login': 'signin.html',
             'profile': 'home.html',
-            'update': 'password.html',
+            'renew': 'password.html',
         },
         # define custom callbacks
         custom_callbacks = {
             'login':{
-                'success': lambda arch, e: arch.flash(f'welcome back {current_user.name}')
+                # for BasicPasswordUser, get_id() is equivalent to human-friendly identifier a.k.a username
+                'success': lambda arch, e: arch.flash(f'welcome back {current_user.get_id()}')
             },
         },
     )

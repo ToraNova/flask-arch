@@ -25,4 +25,4 @@ runtest.sh
     1. [Simple architecture](examples/arch_basic/__init__.py)
 * Authentication
     1. [Minimal Login (No Database)](examples/auth_basic/__init__.py)
-    2. [With SQLAlchemy](examples/auth_basic/__init__.py)
+    2. [With SQLAlchemy](examples/auth_database/__init__.py)

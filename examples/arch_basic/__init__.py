@@ -11,13 +11,14 @@ class MyArch(BaseArch):
             custom_callbacks = {},
             url_prefix = None):
 
-        super().__init__(arch_name, templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
+        routing_rules = [] # not demonstrated in this example
+        super().__init__(arch_name, routing_rules, templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
         # this example arch has 2 routes
-        self._default_tp('r1', 'r1.html') # default template for r1, if key r1 not set on templates
-        self._default_tp('r2', 'r2.html') # default template for r2, if key r2 not set on templates
-        self._default_rt('r2', f'{arch_name}.r2') # default reroute on r2, if key r2 not set on reroutes
+        self.default_tp('r1', 'r1.html') # default template for r1, if key r1 not set on templates
+        self.default_tp('r2', 'r2.html') # default template for r2, if key r2 not set on templates
+        self.default_rt('r2', f'{arch_name}.r2') # default reroute on r2, if key r2 not set on reroutes
 
-        self._default_tp('missing', 'missing.html') # test what happens if template does not exist
+        self.default_tp('missing', 'missing.html') # test what happens if template does not exist
 
     def init_app(self, app):
 

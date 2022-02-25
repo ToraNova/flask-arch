@@ -35,10 +35,10 @@ def test_4xx(client):
     resp = client.post("/simple/register")
     assert resp.status_code == 404
 
-    resp = client.post("/simple/update")
+    resp = client.post("/simple/renew")
     assert resp.status_code == 404
 
-    resp = client.post("/simple/delete")
+    resp = client.post("/simple/remove")
     assert resp.status_code == 404
 
     resp = client.post("/iud/login")
@@ -47,10 +47,10 @@ def test_4xx(client):
     resp = client.post("/iud/register")
     assert resp.status_code == 400
 
-    resp = client.post("/iud/update")
+    resp = client.post("/iud/renew")
     assert resp.status_code == 401
 
-    resp = client.post("/iud/delete")
+    resp = client.post("/iud/remove")
     assert resp.status_code == 401
 
     resp = client.post("/iud/login", data={'username':'jason', 'password':'wrong'})
@@ -60,10 +60,10 @@ def test_4xx(client):
     assert resp.status_code == 401
 
 def test_pw_update(client):
-    resp = client.get('/iud/update')
+    resp = client.get('/iud/renew')
     assert resp.status_code == 401
 
-    resp = client.post('/iud/update', data={'password_new':'hunter3', 'password_confirm':'hunter3', 'password_old':'hunter1'})
+    resp = client.post('/iud/renew', data={'password_new':'hunter3', 'password_confirm':'hunter3', 'password_old':'hunter1'})
     assert resp.status_code == 401
     assert b'401 Unauthorized' in resp.data
 
@@ -72,21 +72,21 @@ def test_pw_update(client):
     assert resp.status_code == 200
     assert b'color:green">welcome back jason' in resp.data
 
-    resp = client.get('/iud/update')
+    resp = client.get('/iud/renew')
     assert resp.status_code == 200
 
-    resp = client.post('/iud/update', data={'password_new':'hunter3', 'password_confirm':'hunter3', 'password_old':'hunter1'})
+    resp = client.post('/iud/renew', data={'password_new':'hunter3', 'password_confirm':'hunter3', 'password_old':'hunter1'})
     assert resp.status_code == 401
     assert b'red">invalid old password' in resp.data
 
-    resp = client.post('/iud/update', data={'password_new':'hunter3', 'password_confirm':'hunter1', 'password_old':'hunter2'})
+    resp = client.post('/iud/renew', data={'password_new':'hunter3', 'password_confirm':'hunter1', 'password_old':'hunter2'})
     assert resp.status_code == 400
     assert b'red">new password do not match' in resp.data
 
-    resp = client.post('/iud/update', data={'password_new':'hunter1', 'password_confirm':'hunter1', 'password_old':'hunter2'}, follow_redirects=True)
+    resp = client.post('/iud/renew', data={'password_new':'hunter1', 'password_confirm':'hunter1', 'password_old':'hunter2'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
-    assert b'green">update successful' in resp.data
+    assert b'green">renew successful' in resp.data
 
     resp = client.get('/iud/logout', follow_redirects=True)
     assert len(resp.history) == 1
@@ -99,10 +99,10 @@ def test_pw_update(client):
     assert b'color:green">welcome back jason' in resp.data
 
 def test_delete(client):
-    resp = client.get('/iud/delete')
+    resp = client.get('/iud/remove')
     assert resp.status_code == 401
 
-    resp = client.post('/iud/delete', data={'password':'hunter3'})
+    resp = client.post('/iud/remove', data={'password':'hunter3'})
     assert resp.status_code == 401
 
     resp = client.post('/iud/login', data={'username': 'jason', 'password': 'hunter2'}, follow_redirects=True)
@@ -110,14 +110,14 @@ def test_delete(client):
     assert resp.status_code == 200
     assert b'color:green">welcome back jason' in resp.data
 
-    resp = client.get('/iud/delete')
+    resp = client.get('/iud/remove')
     assert resp.status_code == 200
 
-    resp = client.post('/iud/delete', data={'password':'hunter3'})
+    resp = client.post('/iud/remove', data={'password':'hunter3'})
     assert resp.status_code == 401
     assert b'red">invalid password' in resp.data
 
-    resp = client.post('/iud/delete', data={'password':'hunter2'}, follow_redirects=True)
+    resp = client.post('/iud/remove', data={'password':'hunter2'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
 

@@ -1,7 +1,7 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
 from flask_arch.auth import Arch
-from flask_arch.auth.user import SQLPasswordUser
+from flask_arch.auth.user import PasswordUser, SQLUserManager
 from flask_arch.cms import SQLContentManager
 from flask_login import current_user, login_required
 
@@ -14,7 +14,7 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     # use a volatile dictionary to handle user, users are ephemeral
-    user_manager = SQLContentManager(SQLPasswordUser, app.config['DBURI'])
+    user_manager = SQLUserManager(PasswordUser, app.config['DBURI'])
 
     # for first time
     init_add = not user_manager.table_exists()
@@ -28,7 +28,7 @@ def create_app(test_config=None):
 
     if init_add:
         # first time
-        user = SQLPasswordUser('jason', 'hunter2')
+        user = PasswordUser('jason', 'hunter2')
         user_manager.insert(user)
         user_manager.commit()
 

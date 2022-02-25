@@ -71,31 +71,31 @@ def test_create(client):
     assert b'welcome newuser' in resp.data
 
 def test_update(client):
-    resp = client.get('/database_test/update')
+    resp = client.get('/database_test/renew')
     assert resp.status_code == 401
 
     client.post('/database_test/login', data={'username': 'jason', 'password': 'hunter2'})
-    resp = client.get('/database_test/update')
+    resp = client.get('/database_test/renew')
     assert resp.status_code == 200
 
-    resp = client.post('/database_test/update')
+    resp = client.post('/database_test/renew')
     assert resp.status_code == 302
 
-    resp = client.post('/database_test/update', data={'password_new':'a'})
+    resp = client.post('/database_test/renew', data={'password_new':'a'})
     assert resp.status_code == 400
 
-    resp = client.post('/database_test/update', data={'password_new':'hunter3', 'password_confirm':'hunter3', 'password_old':'hunter1'})
+    resp = client.post('/database_test/renew', data={'password_new':'hunter3', 'password_confirm':'hunter3', 'password_old':'hunter1'})
     assert resp.status_code == 401
     assert b'red">invalid old password' in resp.data
 
-    resp = client.post('/database_test/update', data={'password_new':'ABC', 'password_confirm':'abc', 'password_old':'hunter2'})
+    resp = client.post('/database_test/renew', data={'password_new':'ABC', 'password_confirm':'abc', 'password_old':'hunter2'})
     assert resp.status_code == 400
     assert b'red">new password do not match' in resp.data
 
-    resp = client.post('/database_test/update', data={'password_new':'abc', 'password_confirm':'abc', 'password_old':'hunter2'}, follow_redirects=True)
+    resp = client.post('/database_test/renew', data={'password_new':'abc', 'password_confirm':'abc', 'password_old':'hunter2'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
-    assert b'green">update successful' in resp.data
+    assert b'green">renew successful' in resp.data
 
     resp = client.get('/database_test/logout', follow_redirects=True)
     assert resp.status_code == 200
@@ -105,37 +105,37 @@ def test_update(client):
     assert resp.status_code == 401
     assert b'red">invalid credentials' in resp.data
 
-    resp = client.get('/database_test/update')
+    resp = client.get('/database_test/renew')
     assert resp.status_code == 401
 
     client.post('/database_test/login', data={'username': 'jason', 'password': 'abc'})
-    resp = client.get('/database_test/update')
+    resp = client.get('/database_test/renew')
     assert resp.status_code == 200
 
 def test_delete(client):
-    resp = client.get('/database_test/delete')
+    resp = client.get('/database_test/remove')
     assert resp.status_code == 401
 
     client.post('/database_test/login', data={'username': 'jason', 'password': 'hunter2'})
-    resp = client.get('/database_test/delete')
+    resp = client.get('/database_test/remove')
     assert resp.status_code == 200
 
-    resp = client.post('/database_test/delete')
+    resp = client.post('/database_test/remove')
     assert resp.status_code == 400
 
-    resp = client.post('/database_test/delete', data={'a':'a'})
+    resp = client.post('/database_test/remove', data={'a':'a'})
     assert resp.status_code == 400
 
-    resp = client.post('/database_test/delete', data={'password':'Hunter2'})
+    resp = client.post('/database_test/remove', data={'password':'Hunter2'})
     assert resp.status_code == 401
     assert b'red">invalid password' in resp.data
 
-    resp = client.post('/database_test/delete', data={'password':'hunter2'}, follow_redirects=True)
+    resp = client.post('/database_test/remove', data={'password':'hunter2'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
-    assert b'green">delete successful' in resp.data
+    assert b'green">remove successful' in resp.data
 
-    resp = client.get('/database_test/delete')
+    resp = client.get('/database_test/remove')
     assert resp.status_code == 401
 
     resp = client.post('/database_test/login', data={'username': 'jason', 'password': 'hunter2'})

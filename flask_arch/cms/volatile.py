@@ -1,7 +1,7 @@
-from flask_arch.cms.base import BaseContentManager
-from flask_arch import exceptions
+from . import base
+from .. import exceptions
 
-class VolatileDictionary(BaseContentManager):
+class ContentManager(base.ContentManager):
 
     def __init__(self, content_class):
         super().__init__(content_class)
@@ -15,18 +15,18 @@ class VolatileDictionary(BaseContentManager):
             return self.data[id]
 
     def insert(self, nd):
-        if nd.id in self.data:
-            raise exceptions.UserError(409, f'{self.content_class.__name__} exists')
-        self.data[nd.id] = nd
+        if nd.get_id() in self.data:
+            raise exceptions.UserError(409, f'{self.content_class.__name__} exists.')
+        self.data[nd.get_id()] = nd
 
     def update(self, nd):
-        if nd.id in self.data:
-            self.data[nd.id] = nd
-            return self.data[nd.id]
+        if nd.get_id() in self.data:
+            self.data[nd.get_id()] = nd
+            return self.data[nd.get_id()]
 
     def delete(self, nd):
-        if nd.id in self.data:
-            del self.data[nd.id]
+        if nd.get_id() in self.data:
+            del self.data[nd.get_id()]
 
     def commit(self):
         pass

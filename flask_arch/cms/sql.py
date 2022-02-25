@@ -16,22 +16,33 @@ from sqlalchemy import create_engine, MetaData, inspect
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from flask_arch.cms.base import BaseContentMixin, BaseContentManager
+from . import base
 
 SQLDeclarativeBase = declarative_base()
 
-def make_session(engine, base = SQLDeclarativeBase):
+
+def make_session(engine, base=SQLDeclarativeBase):
     '''create a session and bind the Base query property to it'''
     sess =  scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
     base.query = sess.query_property()
     return sess
 
-def connect(dburi, base = SQLDeclarativeBase):
+
+def connect(dburi, base=SQLDeclarativeBase):
     '''easy function to connect to a database, returns a session'''
     engine = create_engine(dburi)
     return make_session(engine, base)
 
-class SQLContentMixin(BaseContentMixin):
+
+class Content(base.Content):
+
+    @property
+    def __tablename__(self):
+        return self.__contentname__
+
+    @property
+    def __table__(self):
+        raise ValueError(f'__table__ is not defined for {self.__class__.__name__}, please inherit a SQL declarative base.')
 
     def as_json(self):
         return json.dumps(self.as_dict())
@@ -39,27 +50,23 @@ class SQLContentMixin(BaseContentMixin):
     def as_dict(self):
         # dump all table into a dictionary
         od = {c.name: (getattr(self, c.name)) for c in self.__table__.columns}
-        for k,v in od.items():
+        for k, v in od.items():
             # convert dates to isoformat
             if isinstance(v, datetime.datetime):
                 od[k] = v.isoformat()
         return od
 
-class SQLContentManager(BaseContentManager):
 
-    def __init__(self, content_class, database_uri, orm_base = SQLDeclarativeBase):
+class ContentManager(base.ContentManager):
+
+    def __init__(self, content_class, database_uri, orm_base=SQLDeclarativeBase):
         super().__init__(content_class)
-        if not issubclass(content_class, SQLContentMixin):
-            raise TypeError(f'{content_class} should be a subclass of {SQLContentMixin}')
+        if not issubclass(content_class, Content):
+            raise TypeError(f'{content_class} should be a subclass of {Content}.')
 
         self.tablename = self.content_class.__tablename__
         self.database_uri = database_uri
         self.session = connect(database_uri, orm_base)
-
-    def select_user(self, userid):
-        return self.content_class.query.filter(
-            getattr(self.content_class, self.content_class.userid) == userid
-        ).first()
 
     # create table if not exist on dburi
     def create_table(self):

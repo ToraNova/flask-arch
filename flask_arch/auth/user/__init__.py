@@ -1,5 +1,8 @@
 # basic user class to work with flask-login
 
-from flask_arch.auth.user.base import BaseUserMixin
-from flask_arch.auth.user.password import PasswordUser, SQLPasswordUser
-
+from .base import User as BaseUser
+from .volatile import UserManager as VolatileUserManager
+from .sql import User as SQLUser
+from .sql import UserManager as SQLUserManager
+from .password import UserMixin as PasswordUserMixin
+from .builtin import BasicPasswordUser, PasswordUser
