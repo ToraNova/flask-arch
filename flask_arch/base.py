@@ -8,28 +8,8 @@ from jinja2.exceptions import TemplateNotFound
 from flask import Blueprint, redirect, url_for, flash, render_template, request, abort, current_app
 
 from . import tags
-
-class RouteArch:
-    def __init__(self, keyword, view_function, reroute=None, **options):
-        self.keyword = keyword
-        self.template = f'{keyword}.html' # default template are 'keyword.html'
-        self.reroute = reroute
-        if isinstance(reroute, str):
-            self.reroute_absolute = '.' in reroute
-        self.options = options
-        self.view_function = view_function
-
-    def __str__(self):
-        return self.keyword
-
-    def __lt__(self, other):
-        return self.keyword < other.keyword
-
-    def __gt__(self, other):
-        return self.keyword > other.keyword
-
-    def __eq__(self, other):
-        return self.keyword == other.keyword
+from .blocks import RouteBlock
+from .legacy import LegacyRouteBlock
 
 class BaseArch:
 
@@ -68,12 +48,9 @@ class BaseArch:
         route_key = self.get_route_key()
         # reroute action
         if isinstance(self._rkarg.get(route_key), dict):
-            passd = {}
+            passd = kwargs
             for k, v in self._rkarg.get(route_key).items():
-                if v is None and k in kwargs:
-                    passd[k] = kwargs[k]
-                else:
-                    passd[k] = v
+                passd[k] = v
             return redirect(url_for(self._route[route_key], **passd))
         return redirect(url_for(self._route[route_key], **kwargs))
 
@@ -82,15 +59,6 @@ class BaseArch:
         if not self.callback_valid(route_key, tag):
             raise KeyError(f'custom callback for {route_key}.{tag} invalid')
         return self._ccall[route_key][tag](self, *args, **kwargs)
-
-    # default functions for flask-arch project dev
-    def default_tp(self, route_key, default):
-        if not self._templ.get(route_key):
-            self._templ[route_key] = default
-
-    def default_rt(self, route_key, default):
-        if not self._route.get(route_key):
-            self._route[route_key] = default
 
     def callback_valid(self, route_key, tag):
         if not route_key in self._ccall:
@@ -104,23 +72,20 @@ class BaseArch:
             return False
         return True
 
+    # default functions for flask-arch project dev
+    def default_tp(self, route_key, default):
+        if not self._templ.get(route_key):
+            self._templ[route_key] = default
+
+    def default_rt(self, route_key, default):
+        if not self._route.get(route_key):
+            self._route[route_key] = default
+
     def default_cb(self, route_key, tag, default):
         if not self.callback_valid(route_key, tag):
             if not callable(default):
                 raise TypeError(f'default arg for callback on {route_key}.{tag} should be callable')
             self._ccall[route_key][tag] = default
-
-    # for flask_arch.cms, where reference 'content' is always needed
-    # deprecated, kept for backward compatibility,
-    # use _reroute_mod instead
-    # use: call _reroute_mod('name', 'value') after reroute settings
-    # to always insert url_for(... , name = value , ...) in reroute calls
-    def _reroute_mod(self, farg_name, farg_value):
-        for k in self._route.keys():
-            if self._rkarg.get(k) is None:
-                self._rkarg[k] = {farg_name: farg_value}
-            else:
-                self._rkarg[k][farg_name] = farg_value
 
     def type_test(self, arg, typ, argn, allow_none = False):
         if not isinstance(arg, typ):
@@ -128,31 +93,76 @@ class BaseArch:
                 return
             raise TypeError(f'{argn} should be of instance {typ}, got {type(arg)}')
 
-    def add_route(self, ra):
-        rule = f'/{ra.keyword}'
-        self.bp.add_url_rule(rule, ra.keyword, ra.view_function, **ra.options)
+    def add_route(self, rb):
+        if isinstance(rb, LegacyRouteBlock):
+            self.bp.add_url_rule(rb.url_rule, rb.keyword, rb.view_function, **rb.options)
+        else:
+            self.bp.add_url_rule(rb.url_rule, rb.keyword, rb.view, **rb.options)
 
     def init_app(self, app):
-        for ra in self.routing_rules:
-            self.add_route(ra)
+        for rb in self.route_blocks:
+            self.add_route(rb)
         app.register_blueprint(self.bp)
+
+    def valid_override(self, keyword, cdict, strict_type):
+        if keyword in cdict:
+            self.type_test(cdict[keyword], strict_type, f'[{keyword}] = {cdict[keyword]}')
+            return True
+        return False
 
     # arch_name - name of the arch
     # templates - the template dictionary, same for reroutes
     # reroutes_kwarg - additional kwarg to pass in during a reroute fcall
     # rex_callback - route execution callback, a function table at the end of a route execution
     # url_prefix - url prefix of a blueprint generated. use / to have NO prefix, leave it at None to default to /<arch_name>
-    def __init__(self, arch_name, routing_rules, templates = {}, reroutes = {}, reroutes_kwarg = {}, custom_callbacks = {}, url_prefix = None):
+    def __init__(self, arch_name, route_blocks, templates = {}, reroutes = {}, reroutes_kwargs = {}, custom_callbacks = {}, url_prefix = None):
+
         self.type_test(arch_name, str, 'arch_name')
+        self.type_test(route_blocks, list, 'route_blocks')
         self.type_test(templates, dict, 'templates')
         self.type_test(reroutes, dict, 'reroutes')
-        self.type_test(reroutes_kwarg, dict, 'reroutes_kwarg')
+        self.type_test(reroutes_kwargs, dict, 'reroutes_kwargs')
         self.type_test(custom_callbacks, dict, 'custom_callbacks')
         self.type_test(url_prefix, str, 'url_prefix', allow_none=True)
-        self._templ = templates.copy()
-        self._route = reroutes.copy()
-        self._rkarg = reroutes_kwarg.copy()
-        self._ccall = custom_callbacks.copy()
+
+        self.name = arch_name
+        self.route_blocks = []
+        self._templ = {}
+        self._route = {}
+        self._rkarg = {}
+        self._ccall = {}
+
+        for rb in route_blocks:
+            if not isinstance(rb, RouteBlock) and not isinstance(rb, LegacyRouteBlock):
+                continue
+
+            if self.valid_override(rb.keyword, templates, str):
+                rb.template = templates[rb.keyword]
+
+            if self.valid_override(rb.keyword, reroutes, str):
+                rb.reroute = reroutes[rb.keyword]
+
+            if self.valid_override(rb.keyword, reroutes_kwargs, dict):
+                for k, v in reroutes_kwargs[rb.keyword].items():
+                    rb.reroute_kwargs[k] = v
+
+            if self.valid_override(rb.keyword, custom_callbacks, dict):
+                for k, v in custom_callbacks[rb.keyword].items():
+                    if not callable(v):
+                        raise TypeError(f'custom_callbacks[\'{rb.keyword}\'][\'{k}\'] not callable')
+                    rb.custom_callbacks[k] = v
+
+            self._templ[rb.keyword] = rb.template
+            if isinstance(rb.reroute, str):
+                if '.' in rb.reroute or rb.reroute_external:
+                    self._route[rb.keyword] = rb.reroute
+                else:
+                    self._route[rb.keyword] = f'{self.name}.{rb.reroute}'
+            self._rkarg[rb.keyword] = rb.reroute_kwargs
+            self._ccall[rb.keyword] = rb.custom_callbacks
+
+            rb.init_bp_name(self.name)
+            self.route_blocks.append(rb)
 
         if url_prefix is None:
             self._url_prefix = '/%s' % arch_name
@@ -160,28 +170,9 @@ class BaseArch:
             self._url_prefix = None
         else:
             self._url_prefix = url_prefix
-        self._arch_name = arch_name
-
-        self.type_test(routing_rules, list, 'routing_rules')
-        self.routing_rules = []
-        for ra in routing_rules:
-            if ra is None:
-                continue
-            if isinstance(ra.template, str):
-                self.default_tp(ra.keyword, ra.template)
-            if isinstance(ra.reroute, str):
-                if ra.reroute_absolute:
-                    self.default_rt(ra.keyword, ra.reroute)
-                else:
-                    self.default_rt(ra.keyword, f'{self._arch_name}.{ra.reroute}')
-            self.routing_rules.append(ra)
-
-        self.bp = Blueprint(self._arch_name, __name__, url_prefix = self._url_prefix)
+        self.bp = Blueprint(self.name, __name__, url_prefix = self._url_prefix)
+        self._debug()
 
     def _debug(self):
-        print(self._arch_name)
-        print(self._templ)
-        print(self._route)
-        print(self._rkarg)
-        print(self._ccall)
-        print()
+        for rb in self.route_blocks:
+            rb._debug()

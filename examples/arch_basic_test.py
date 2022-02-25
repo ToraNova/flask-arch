@@ -48,9 +48,19 @@ def test_get(client):
     resp = client.get('/myarch2/r2/101')
     assert b'Route2 101' in resp.data
 
-    resp = client.get('/myarch1/missing')
+    resp = client.get('/myarch1/missing-template')
     assert resp.status_code == 500
     assert b'template for missing: \'missing.html\' not found' in resp.data
+
+    resp = client.get('/myarch2/reroute-test', follow_redirects=True)
+    assert len(resp.history) == 1
+    assert resp.status_code == 200
+    assert b'3' in resp.data
+
+    resp = client.get('/reroute_to_arch', follow_redirects=True)
+    assert len(resp.history) == 1
+    assert resp.status_code == 200
+    assert b'MyArch1 - Route1' in resp.data
 
 def test_post(client):
     resp = client.post('/myarch1/r2/1')

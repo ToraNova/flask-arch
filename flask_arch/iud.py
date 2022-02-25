@@ -1,17 +1,12 @@
-from .base import BaseArch, RouteArch
+from .base import BaseArch, RouteBlock
 from . import exceptions, tags
 from flask import request
 
-class Arch(BaseArch):
+class IUDBlock(RouteBlock):
 
-    def __init__(self, ra, content_manager, keyword, iud_request, iud_response):
-        RouteArch
+    def __init__(self, keyword, iud_request, iud_response, url_rule, reroute=None, reroute_external=False, **options):
 
-
-        self.iud_request = iud_request
-        self.iud_response = iud_response
-
-        super().__init__(arch_name, [ra], templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
+        super().__init__(keyword, self.route_iud, url_rule=None, reroute=None, reroute_external=False, **options):
 
     def route_iud(self):
         if request.method == 'POST':
@@ -39,3 +34,17 @@ class Arch(BaseArch):
                 self.server_error(e)
 
         return self.render()
+
+class Arch(BaseArch):
+
+    def __init__(self, ra, content_manager, keyword, iud_request, iud_response):
+
+        RouteArch
+
+
+
+        self.iud_request = iud_request
+        self.iud_response = iud_response
+
+        super().__init__(arch_name, [ra], templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
+

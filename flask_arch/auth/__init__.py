@@ -6,8 +6,10 @@ from flask import request, url_for
 from jinja2.exceptions import TemplateNotFound
 from flask_login import login_user, logout_user, LoginManager, login_required, current_user
 
-from .. import BaseArch, RouteArch, exceptions, tags, callbacks
+from .. import BaseArch, exceptions, tags, callbacks
 from ..cms import BaseContentManager
+from ..blocks import basic
+from ..legacy import LegacyRouteBlock
 
 
 # basic.Arch
@@ -15,7 +17,7 @@ from ..cms import BaseContentManager
 # reroutes: login, logout
 class Arch(BaseArch):
 
-    def __init__(self, user_manager, arch_name='auth', templates={}, reroutes={}, reroutes_kwarg={}, custom_callbacks={}, url_prefix=None, routes_disabled=[],):
+    def __init__(self, user_manager, arch_name='auth', templates={}, reroutes={}, reroutes_kwargs={}, custom_callbacks={}, url_prefix=None, routes_disabled=[],):
         '''
         initialize the architecture for the flask_arch
         templ is a dictionary that returns user specified templates to user on given routes
@@ -33,29 +35,30 @@ class Arch(BaseArch):
         UPDATE  = 'renew'
         DELETE  = 'remove'
 
-        routing_rules = [
+        route_blocks = [
             # keyword, view_function, reroute, options
-            RouteArch(PROFILE, self.route_profile),
-            RouteArch(LOGOUT, self.route_logout, LOGIN),
-            RouteArch(LOGIN, self.route_login,  PROFILE, methods=['GET', 'POST']),
+            basic.SecureRenderBlock(PROFILE,),
+            #LegacyRouteBlock(PROFILE, self.route_profile),
+            LegacyRouteBlock(LOGOUT, self.route_logout, reroute=LOGIN),
+            LegacyRouteBlock(LOGIN, self.route_login,  reroute=PROFILE, methods=['GET', 'POST']),
             # do not add the rule if route is disabled
-            RouteArch(INSERT, self.route_insert, LOGIN, methods=['GET', 'POST'])\
+            LegacyRouteBlock(INSERT, self.route_insert, reroute=LOGIN, methods=['GET', 'POST'])\
                     if INSERT not in routes_disabled else None,
-            RouteArch(UPDATE, self.route_update, PROFILE, methods=['GET', 'POST'])\
+            LegacyRouteBlock(UPDATE, self.route_update, reroute=PROFILE, methods=['GET', 'POST'])\
                     if UPDATE not in routes_disabled else None,
-            RouteArch(DELETE, self.route_delete, LOGIN, methods=['GET', 'POST'])\
+            LegacyRouteBlock(DELETE, self.route_delete, reroute=LOGIN, methods=['GET', 'POST'])\
                     if DELETE not in routes_disabled else None,
         ]
 
-        super().__init__(arch_name, routing_rules, templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
+        super().__init__(arch_name, route_blocks, templates, reroutes, reroutes_kwargs, custom_callbacks, url_prefix)
 
         self.default_cb(LOGIN, tags.INVALID_USER, callbacks.default_login_invalid)
         self.default_cb(LOGIN, tags.INVALID_AUTH, callbacks.default_login_invalid)
 
-        for ra in self.routing_rules:
-            self.default_cb(ra.keyword, tags.SUCCESS, callbacks.default_success)
-            self.default_cb(ra.keyword, tags.USER_ERROR, callbacks.default_user_error)
-            #self.default_cb(ra.keyword, tags.INTEGRITY_ERROR, callbacks.default_int_error)
+        for rb in self.route_blocks:
+            self.default_cb(rb.keyword, tags.SUCCESS, callbacks.default_success)
+            self.default_cb(rb.keyword, tags.USER_ERROR, callbacks.default_user_error)
+            #self.default_cb(rb.keyword, tags.INTEGRITY_ERROR, callbacks.default_int_error)
 
         self.default_cb(INSERT, tags.INTEGRITY_ERROR,
                 lambda arch, e: arch.flash('already exist', 'warn'))
@@ -133,10 +136,6 @@ class Arch(BaseArch):
                 self.user_manager.rollback() # rollback
                 self.server_error(e)
 
-        return self.render()
-
-    @login_required
-    def route_profile(self):
         return self.render()
 
     @login_required

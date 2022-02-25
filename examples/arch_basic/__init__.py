@@ -2,6 +2,8 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
 from flask_arch import BaseArch
 
+from flask_arch.legacy import LegacyRouteBlock as RouteBlock
+
 class MyArch(BaseArch):
     def __init__(self,
             arch_name = 'default-myarch',
@@ -11,43 +13,33 @@ class MyArch(BaseArch):
             custom_callbacks = {},
             url_prefix = None):
 
-        routing_rules = [] # not demonstrated in this example
-        super().__init__(arch_name, routing_rules, templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
-        # this example arch has 2 routes
-        self.default_tp('r1', 'r1.html') # default template for r1, if key r1 not set on templates
-        self.default_tp('r2', 'r2.html') # default template for r2, if key r2 not set on templates
-        self.default_rt('r2', f'{arch_name}.r2') # default reroute on r2, if key r2 not set on reroutes
+        route_blocks = [
+                RouteBlock('r1', lambda : self.render(),),
+                RouteBlock('r2', self.r2_function, '/r2/<int:foo>', reroute='r2', methods=['GET', 'POST']),
+                RouteBlock('rtest', lambda : self.reroute(), '/reroute-test', reroute='hi', reroute_external=True),
+                RouteBlock('missing', lambda : self.render(), '/missing-template'),
+                ]
 
-        self.default_tp('missing', 'missing.html') # test what happens if template does not exist
+        super().__init__(arch_name, route_blocks, templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
+
+    def r2_function(self, foo):
+        rscode = 200
+        if request.method == 'POST':
+            d = request.form.get('bar')
+            password = request.form.get('password')
+            if not d or not password:
+                flash('missing bar or password', 'err')
+                rscode = 402
+            else:
+                if password != self.name:
+                    abort(401)
+
+                flash('post successful', 'ok')
+                return self.reroute(foo=foo)
+        return self.render(display=foo), rscode
 
     def init_app(self, app):
-
-        @self.bp.route('/missing')
-        def missing():
-            return self.render()
-
-        @self.bp.route('/r1')
-        def r1():
-            return self.render()
-
-        @self.bp.route('/r2/<int:foo>', methods=['GET','POST'])
-        def r2(foo):
-            rscode = 200
-            if request.method == 'POST':
-                d = request.form.get('bar')
-                password = request.form.get('password')
-                if not d or not password:
-                    flash('missing bar or password', 'err')
-                    rscode = 402
-                else:
-                    if password != self._arch_name:
-                        abort(401)
-
-                    flash('post successful', 'ok')
-                    return self.reroute(foo=foo)
-            return self.render(display=foo), rscode
-
-        app.register_blueprint(self.bp)
+        super().init_app(app)
 
 
 def create_app(test_config=None):
@@ -62,12 +54,20 @@ def create_app(test_config=None):
 
     # notice myarch2's r2 reroutes to myarch1's r2
     # it uses a different html template on r1
-    ma2 = MyArch('myarch2', templates = {'r1': 'a2r1.html'}, reroutes = {'r2': 'myarch1.r2'})
+    ma2 = MyArch('myarch2', templates = {'r1': 'a2r1.html'}, reroutes = {'r2': 'myarch1.r2'}, reroutes_kwarg={'rtest':{'val':3}})
     ma2.init_app(app)
 
     # of course you could use app like a normal flask app
     @app.route('/')
     def root():
         return render_template('root.html')
+
+    @app.route('/test/<string:val>')
+    def hi(val):
+        return val
+
+    @app.route('/reroute_to_arch')
+    def reroute_to_arch():
+        return redirect(url_for('myarch1.r1'))
 
     return app
