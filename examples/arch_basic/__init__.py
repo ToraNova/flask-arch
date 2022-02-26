@@ -1,8 +1,32 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
-from flask_arch import BaseArch
+from flask_arch import BaseArch, RouteBlock
+from flask_arch.blocks.basic import RenderBlock, RerouteBlock
 
-from flask_arch.legacy import LegacyRouteBlock as RouteBlock
+#from flask_arch.legacy import LegacyRouteBlock as RouteBlock
+
+class MyBlock(RouteBlock):
+
+    @property
+    def default_url_rule(self):
+        return f'/{self.keyword}/<int:foo>'
+
+    def view(self, foo):
+        rscode = 200
+        if request.method == 'POST':
+            d = request.form.get('bar')
+            password = request.form.get('password')
+            if not d or not password:
+                flash('missing bar or password', 'err')
+                rscode = 402
+            else:
+                if password != self.arch_name:
+                    abort(401)
+
+                flash('post successful', 'ok')
+                return self.reroute(foo=foo)
+        return self.render(display=foo), rscode
+
 
 class MyArch(BaseArch):
     def __init__(self,
@@ -14,29 +38,13 @@ class MyArch(BaseArch):
             url_prefix = None):
 
         route_blocks = [
-                RouteBlock('r1', lambda : self.render(),),
-                RouteBlock('r2', self.r2_function, '/r2/<int:foo>', reroute='r2', methods=['GET', 'POST']),
-                RouteBlock('rtest', lambda : self.reroute(), '/reroute-test', reroute='hi', reroute_external=True),
-                RouteBlock('missing', lambda : self.render(), '/missing-template'),
+                RenderBlock('r1'),
+                MyBlock('r2', reroute_to='r2', methods=['GET', 'POST']),
+                RerouteBlock('rtest', '/reroute-test', reroute_to='hi', reroute_external=True),
+                RenderBlock('missing', '/missing-template'),
                 ]
 
         super().__init__(arch_name, route_blocks, templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
-
-    def r2_function(self, foo):
-        rscode = 200
-        if request.method == 'POST':
-            d = request.form.get('bar')
-            password = request.form.get('password')
-            if not d or not password:
-                flash('missing bar or password', 'err')
-                rscode = 402
-            else:
-                if password != self.name:
-                    abort(401)
-
-                flash('post successful', 'ok')
-                return self.reroute(foo=foo)
-        return self.render(display=foo), rscode
 
     def init_app(self, app):
         super().init_app(app)

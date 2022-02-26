@@ -1,16 +1,16 @@
 
-def default_success(arch, e):
-    arch.flash(f'{arch.get_route_key()} successful', 'ok')
+def default_success(rb, e):
+    rb.flash(f'{rb.keyword} successful', 'ok')
 
-def default_user_error(arch, e):
-    arch.flash(e.msg, 'err')
-    return arch.render(), e.code
+def default_user_error(rb, e):
+    rb.flash(e.msg, 'err')
+    return rb.render(), e.code
 
-def default_int_error(arch, e):
-    #arch.flash('already exist', 'warn')
-    arch.flash(str(e), 'err')
-    return arch.render(), 409
+def default_int_error(rb, e):
+    #rb.flash('already exist', 'warn')
+    rb.flash(str(e), 'err')
+    return rb.render(), 409
 
-def default_login_invalid(arch, e):
-    arch.flash('invalid credentials', 'err')
-    return arch.render(), 401
+def default_login_invalid(rb, e):
+    rb.flash('invalid credentials', 'err')
+    return rb.render(), 401
