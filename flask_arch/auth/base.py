@@ -10,11 +10,10 @@ from ..utils import ensure_type
 from ..blocks.basic import RenderBlock
 from ..cms import BaseContentManager
 
-
 # basic.Arch
 class Arch(BaseArch):
 
-    def __init__(self, user_manager, arch_name='auth', routes_disabled=[], route_blocks=[], **kwargs):
+    def __init__(self, user_manager, arch_name='auth', **kwargs):
         '''
         initialize the architecture for the flask_arch
         templ is a dictionary that returns user specified templates to user on given routes
@@ -22,8 +21,6 @@ class Arch(BaseArch):
         '''
         super().__init__(arch_name, **kwargs)
         ensure_type(user_manager, BaseContentManager, 'user_manager')
-        ensure_type(routes_disabled, list, 'routes_disabled')
-        ensure_type(route_blocks, list, 'custom_route_blocks')
 
         LOGIN   = 'login'
         LOGOUT  = 'logout'
@@ -32,46 +29,38 @@ class Arch(BaseArch):
         UPDATE  = 'renew'
         DELETE  = 'remove'
 
-        self.route_blocks = route_blocks.copy()
+        rb = RenderBlock(PROFILE, access_policy=login_required)
+        self.add_route_block(rb)
 
-        if PROFILE not in self.route_blocks:
-            r = RenderBlock(PROFILE, access_policy=login_required)
-            self.route_blocks.append(r)
+        rb = LoginBlock(LOGIN, user_manager, reroute_to=PROFILE)
+        rb.set_custom_callback(tags.INVALID_USER, callbacks.default_login_invalid)
+        rb.set_custom_callback(tags.INVALID_AUTH, callbacks.default_login_invalid)
+        self.add_route_block(rb)
 
-        if LOGIN not in self.route_blocks:
-            r = LoginBlock(LOGIN, user_manager, reroute_to=PROFILE)
-            r.set_custom_callback(tags.INVALID_USER, callbacks.default_login_invalid)
-            r.set_custom_callback(tags.INVALID_AUTH, callbacks.default_login_invalid)
-            self.route_blocks.append(r)
+        rb = LogoutBlock(LOGOUT, user_manager, reroute_to=LOGIN)
+        self.add_route_block(rb)
 
-        if LOGOUT not in self.route_blocks:
-            r = LogoutBlock(LOGOUT, user_manager, reroute_to=LOGIN)
-            self.route_blocks.append(r)
+        rb = IUDBlock(INSERT, user_manager, 'insert',
+                reroute_to=LOGIN)
+        rb.set_custom_callback(tags.INTEGRITY_ERROR,
+                lambda arch, e: arch.flash('already exist', 'warn'))
+        self.add_route_block(rb)
 
-        if INSERT not in self.route_blocks and INSERT not in routes_disabled:
-            r = IUDBlock(INSERT, user_manager, 'insert',
-                    reroute_to=LOGIN)
-            r.set_custom_callback(tags.INTEGRITY_ERROR,
-                    lambda arch, e: arch.flash('already exist', 'warn'))
-            self.route_blocks.append(r)
+        rb = IUDBlock(UPDATE, user_manager, 'update',
+                reroute_to=PROFILE, access_policy=login_required)
+        rb.set_custom_callback(tags.INTEGRITY_ERROR,
+                lambda arch, e: arch.flash(str(e), 'warn'))
+        self.add_route_block(rb)
 
-        if UPDATE not in self.route_blocks and UPDATE not in routes_disabled:
-            r = IUDBlock(UPDATE, user_manager, 'update',
-                    reroute_to=PROFILE, access_policy=login_required)
-            r.set_custom_callback(tags.INTEGRITY_ERROR,
-                    lambda arch, e: arch.flash(str(e), 'warn'))
-            self.route_blocks.append(r)
+        rb = IUDBlock(DELETE, user_manager, 'delete',
+                reroute_to=LOGIN, access_policy=login_required)
+        rb.set_custom_callback(tags.INTEGRITY_ERROR,
+                lambda arch, e: arch.flash(str(e), 'warn'))
+        self.add_route_block(rb)
 
-        if DELETE not in self.route_blocks and DELETE not in routes_disabled:
-            r = IUDBlock(DELETE, user_manager, 'delete',
-                    reroute_to=LOGIN, access_policy=login_required)
-            r.set_custom_callback(tags.INTEGRITY_ERROR,
-                    lambda arch, e: arch.flash(str(e), 'warn'))
-            self.route_blocks.append(r)
-
-        for r in self.route_blocks:
-            r.set_custom_callback(tags.SUCCESS, callbacks.default_success)
-            r.set_custom_callback(tags.USER_ERROR, callbacks.default_user_error)
+        for rb in self.route_blocks.values():
+            rb.set_custom_callback(tags.SUCCESS, callbacks.default_success)
+            rb.set_custom_callback(tags.USER_ERROR, callbacks.default_user_error)
 
         self.login_manager = LoginManager()
 

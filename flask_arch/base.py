@@ -15,8 +15,18 @@ def valid_override(keyword, cdict, strict_type):
 
 class BaseArch:
 
+    def add_route_blocks(self, rblist):
+        for rb in rblist:
+            self.add_route_block(rb)
+
+    def add_route_block(self, rb, override=False):
+        ensure_type(rb, RouteBlock, 'routeblock')
+        if rb.keyword in self.route_blocks and not override:
+            raise KeyError('routeblock \'{rb.keyword}\' already exists! set override=True to override.')
+        self.route_blocks[rb.keyword] = rb
+
     def _debug(self):
-        for rb in self.route_blocks:
+        for rb in self.route_blocks.values():
             print(self.url_prefix)
             rb._debug()
 
@@ -31,8 +41,11 @@ class BaseArch:
 
         self.bp = Blueprint(self.name, __name__, url_prefix = self.url_prefix)
 
-        for rb in self.route_blocks:
+        for rb in self.route_blocks.values():
             if not isinstance(rb, RouteBlock):
+                continue
+
+            if rb.keyword in self.routes_disabled:
                 continue
 
             # user overrides template
@@ -61,7 +74,7 @@ class BaseArch:
         app.register_blueprint(self.bp)
         #self._debug()  # enable for debugging
 
-    def __init__(self, arch_name, custom_templates = {}, custom_reroutes = {}, custom_reroutes_kwargs = {}, custom_callbacks = {}, custom_url_prefix = None):
+    def __init__(self, arch_name, custom_templates = {}, custom_reroutes = {}, custom_reroutes_kwargs = {}, custom_callbacks = {}, custom_url_prefix = None, routes_disabled=[]):
         '''
         arch_name - name of the architecture
         route_blocks - the route blocks to initialize and configure
@@ -75,6 +88,7 @@ class BaseArch:
         ensure_type(custom_reroutes_kwargs, dict, 'custom_reroutes_kwargs')
         ensure_type(custom_callbacks, dict, 'custom_callbacks')
         ensure_type(custom_url_prefix, str, 'custom_url_prefix', allow_none=True)
+        ensure_type(routes_disabled, list, 'routes_disabled')
 
         self.name = arch_name
         self.custom_templates = custom_templates.copy()
@@ -82,4 +96,6 @@ class BaseArch:
         self.custom_reroutes_kwargs = custom_reroutes_kwargs.copy()
         self.custom_callbacks = custom_callbacks.copy()
         self.custom_url_prefix = custom_url_prefix
-        self.route_blocks = []
+        self.routes_disabled = routes_disabled.copy()
+
+        self.route_blocks = {}
