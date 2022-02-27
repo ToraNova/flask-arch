@@ -7,7 +7,7 @@ class ContentManager(base.ContentManager):
         super().__init__(content_class)
         self.data = {}
 
-    def select(self):
+    def select_all(self):
         return self.data.values()
 
     def select_one(self, id):
@@ -34,5 +34,5 @@ class ContentManager(base.ContentManager):
     def rollback(self):
         pass
 
-    def shutdown_session(self):
+    def shutdown_session(self, exception):
         pass

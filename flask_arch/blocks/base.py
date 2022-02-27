@@ -27,10 +27,10 @@ class RouteBlock:
 
     def set_custom_callback(self, tag, f):
         ensure_callable(f, 'custom_callback')
-        self.custom_callbacks[tag] = f
+        self.callbacks[tag] = f
 
     # routeblock defines the default behavior
-    def __init__(self, keyword, url_rule=None, template=None, reroute_to=None, reroute_external=False, reroute_kwargs={}, custom_callbacks={}, access_policy=None, **options):
+    def __init__(self, keyword, url_rule=None, template=None, reroute_to=None, reroute_external=False, reroute_kwargs={}, callbacks={}, access_policy=None, **options):
         # enforce typing
         ensure_type(keyword, str, 'keyword')
         if '.' in keyword:
@@ -40,7 +40,7 @@ class RouteBlock:
         ensure_type(reroute_to, str, 'reroute', allow_none=True)
         ensure_type(reroute_external, bool, 'reroute_external')
         ensure_type(reroute_kwargs, dict, 'reroute_kwargs')
-        ensure_type(custom_callbacks, dict, 'custom_callbacks')
+        ensure_type(callbacks, dict, 'callbacks')
         ensure_callable(access_policy, 'access_policy', allow_none=True)
 
 
@@ -50,7 +50,7 @@ class RouteBlock:
         self.reroute_to = reroute_to
         self.reroute_external = reroute_external
         self.reroute_kwargs = reroute_kwargs.copy()
-        self.custom_callbacks = custom_callbacks.copy()
+        self.callbacks = callbacks.copy()
         self.access_policy = access_policy
         self.options = options
 
@@ -75,11 +75,12 @@ class RouteBlock:
         if isinstance(self.reroute_kwargs, dict):
             for k, v in self.reroute_kwargs.items():
                 passd[k] = v
+
         return redirect(url_for(self.reroute_endpoint, **passd))
 
-    def custom(self, tag, *args, **kwargs):
-        if tag in self.custom_callbacks and callable(self.custom_callbacks[tag]):
-            return self.custom_callbacks[tag](self, *args, **kwargs)
+    def callback(self, tag, *args, **kwargs):
+        if tag in self.callbacks and callable(self.callbacks[tag]):
+            return self.callbacks[tag](self, *args, **kwargs)
         else:
             raise KeyError(f'custom callback for {self.keyword}.{tag} invalid')
 
@@ -116,13 +117,26 @@ class RouteBlock:
             print('unfinalized routeblock')
         print(self.keyword)
         print(self.template)
-        print(self.reroute)
+        try:
+            print(self.reroute_endpoint)
+        except ValueError:
+            print('no reroute definition')
         print(self.reroute_kwargs)
-        print(self.custom_callbacks)
+        print(self.callbacks)
         print()
+
+    def __str__(self):
+        return self.keyword
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.keyword == other
+        else:
+            return self == other
 
     def client_error(self, e):
         if current_app.debug:
+            traceback.print_exc()
             print('client_error', str(e))
         self.abort(400)
 

@@ -29,13 +29,7 @@ class MyBlock(RouteBlock):
 
 
 class MyArch(BaseArch):
-    def __init__(self,
-            arch_name = 'default-myarch',
-            templates = {},
-            reroutes = {},
-            reroutes_kwarg = {},
-            custom_callbacks = {},
-            url_prefix = None):
+    def __init__(self, arch_name = 'default-myarch', **custom_options):
 
         route_blocks = [
                 RenderBlock('r1'),
@@ -44,7 +38,7 @@ class MyArch(BaseArch):
                 RenderBlock('missing', '/missing-template'),
                 ]
 
-        super().__init__(arch_name, route_blocks, templates, reroutes, reroutes_kwarg, custom_callbacks, url_prefix)
+        super().__init__(arch_name, route_blocks, **custom_options)
 
     def init_app(self, app):
         super().init_app(app)
@@ -62,7 +56,11 @@ def create_app(test_config=None):
 
     # notice myarch2's r2 reroutes to myarch1's r2
     # it uses a different html template on r1
-    ma2 = MyArch('myarch2', templates = {'r1': 'a2r1.html'}, reroutes = {'r2': 'myarch1.r2'}, reroutes_kwarg={'rtest':{'val':3}})
+    ma2 = MyArch('myarch2',
+        custom_templates = {'r1': 'a2r1.html'},
+        custom_reroutes = {'r2': 'myarch1.r2'},
+        custom_reroutes_kwargs={'rtest':{'val':3}}
+    )
     ma2.init_app(app)
 
     # of course you could use app like a normal flask app

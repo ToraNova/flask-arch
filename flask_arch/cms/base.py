@@ -8,9 +8,6 @@ class Content:
     # by default, it is owned by no-one
     owner_id = None
 
-    def __init__(self, *args, **kwargs):
-        raise NotImplementedError(f'__init__ method on {self.__class__.__name__} not implemented.')
-
     def get_id(self):
         if hasattr(self, 'id'):
             return self.id
@@ -18,7 +15,7 @@ class Content:
             return None
 
     @classmethod
-    def create(cls, data, creator=None):
+    def create(cls, data):
         raise NotImplementedError(f'create callback on {cls.__name__} not implemented.')
 
     def update(self,data):
@@ -43,8 +40,8 @@ class ContentManager:
             raise TypeError(f'{content_class} should be a subclass of {Content}.')
         self.content_class = content_class
 
-    def create(self, data):
-        return self.content_class.create(data)
+    def create(self, *args, **kwargs):
+        return self.content_class(*args, **kwargs)
 
     # query user (specially for usermanagers only)
     def select_user(self, userid):
@@ -85,5 +82,5 @@ class ContentManager:
         # rollback changes (encountered an exception)
         raise NotImplementedError(f'rollback method on {self.__class__.__name__} not implemented.')
 
-    def shutdown_session(self):
+    def shutdown_session(self, exception):
         raise NotImplementedError(f'shutdown_session method on {self.__class__.__name__} not implemented.')

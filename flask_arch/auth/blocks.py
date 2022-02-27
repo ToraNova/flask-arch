@@ -3,8 +3,6 @@ from flask import request
 from flask_login import login_user, logout_user, current_user
 
 from .. import tags, exceptions
-from ..blocks import RouteBlock
-from ..utils import ensure_type
 from ..cms import ContentManageBlock
 
 class AuthManageBlock(ContentManageBlock):
@@ -20,7 +18,7 @@ class LogoutBlock(AuthManageBlock):
             return self.reroute()
         identifier = current_user.get_id()
         logout_user()
-        self.custom(tags.SUCCESS, identifier)
+        self.callback(tags.SUCCESS, identifier)
         return self.reroute()
 
 class LoginBlock(AuthManageBlock):
@@ -37,7 +35,7 @@ class LoginBlock(AuthManageBlock):
                     request.form.copy(),
                 )
             except exceptions.UserError as e:
-                return self.custom(tags.USER_ERROR, e)
+                return self.callback(tags.USER_ERROR, e)
             except Exception as e:
                 # client error
                 self.client_error(e)
@@ -45,17 +43,17 @@ class LoginBlock(AuthManageBlock):
             try:
                 user = self.user_manager.select_user(identifier)
                 if user is None:
-                    return self.custom(tags.INVALID_USER, identifier)
+                    return self.callback(tags.INVALID_USER, identifier)
 
                 if not user.auth(auth_data):
-                    return self.custom(tags.INVALID_AUTH, identifier)
+                    return self.callback(tags.INVALID_AUTH, identifier)
 
                 # auth success
                 login_user(user)
-                self.custom(tags.SUCCESS, identifier)
+                self.callback(tags.SUCCESS, identifier)
                 return self.reroute()
             except exceptions.UserError as e:
-                return self.custom(tags.USER_ERROR, e)
+                return self.callback(tags.USER_ERROR, e)
             except Exception as e:
                 # server error: unexpected exception
                 self.user_manager.rollback()  # rollback
@@ -83,7 +81,7 @@ class IUDBlock(AuthManageBlock):
                 # insert new user
                 identifier = self.user_manager.insert(user)
                 self.user_manager.commit() # commit insertion
-                self.custom(tags.SUCCESS, identifier)
+                self.callback(tags.SUCCESS, identifier)
                 return self.reroute()
 
         elif action == 'update':
@@ -102,7 +100,7 @@ class IUDBlock(AuthManageBlock):
                 login_user(user) # login the copy
                 self.user_manager.update(user)
                 self.user_manager.commit() # commit insertion
-                self.custom(tags.SUCCESS, identifier)
+                self.callback(tags.SUCCESS, identifier)
                 return self.reroute()
 
         elif action == 'delete':
@@ -120,7 +118,7 @@ class IUDBlock(AuthManageBlock):
                 # insert new user
                 self.user_manager.delete(user)
                 self.user_manager.commit() # commit insertion
-                self.custom(tags.SUCCESS, identifier)
+                self.callback(tags.SUCCESS, identifier)
                 return self.reroute()
 
         else:
@@ -134,7 +132,7 @@ class IUDBlock(AuthManageBlock):
             try:
                 aargs = self.prepare()
             except exceptions.UserError as e:
-                return self.custom(tags.USER_ERROR, e)
+                return self.callback(tags.USER_ERROR, e)
             except Exception as e:
                 # client error
                 self.client_error(e)
@@ -142,10 +140,10 @@ class IUDBlock(AuthManageBlock):
             try:
                 return self.execute(*aargs)
             except exceptions.UserError as e:
-                return self.custom(tags.USER_ERROR, e) # handle user error
+                return self.callback(tags.USER_ERROR, e) # handle user error
             except exceptions.IntegrityError as e:
                 self.user_manager.rollback() # rollback
-                return self.custom(tags.INTEGRITY_ERROR, e) # handle integrity error
+                return self.callback(tags.INTEGRITY_ERROR, e) # handle integrity error
             except Exception as e:
                 # server error: unexpected exception
                 self.user_manager.rollback() # rollback

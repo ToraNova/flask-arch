@@ -18,27 +18,33 @@ class BaseArch:
     def add_route(self, rb):
         self.bp.add_url_rule(rb.url_rule, rb.keyword, rb.view, **rb.options)
 
+    def _debug(self):
+        for rb in self.route_blocks:
+            print(self.url_prefix)
+            rb._debug()
+
     def init_app(self, app):
         for rb in self.route_blocks:
             rb.finalize(self.name)
             self.add_route(rb)
         app.register_blueprint(self.bp)
+        #self._debug()  # enable for debugging
 
-    def __init__(self, arch_name, route_blocks, templates = {}, reroutes = {}, reroutes_kwargs = {}, custom_callbacks = {}, url_prefix = None):
+    def __init__(self, arch_name, route_blocks, custom_templates = {}, custom_reroutes = {}, custom_reroutes_kwargs = {}, custom_callbacks = {}, custom_url_prefix = None):
         '''
         arch_name - name of the architecture
         route_blocks - the route blocks to initialize and configure
-        templates, reroutes, reroutes_kwargs, custom_callbacks - user overrides
+        custom_templates, custom_reroutes, custom_reroutes_kwargs, custom_callbacks - user overrides
         url_prefix - url prefix of a blueprint generated. use / to have NO prefix, leave it at None to default to /<arch_name>
         '''
 
         ensure_type(arch_name, str, 'arch_name')
         ensure_type(route_blocks, list, 'route_blocks')
-        ensure_type(templates, dict, 'templates')
-        ensure_type(reroutes, dict, 'reroutes')
-        ensure_type(reroutes_kwargs, dict, 'reroutes_kwargs')
+        ensure_type(custom_templates, dict, 'custom_templates')
+        ensure_type(custom_reroutes, dict, 'custom_reroutes')
+        ensure_type(custom_reroutes_kwargs, dict, 'custom_reroutes_kwargs')
         ensure_type(custom_callbacks, dict, 'custom_callbacks')
-        ensure_type(url_prefix, str, 'url_prefix', allow_none=True)
+        ensure_type(custom_url_prefix, str, 'custom_url_prefix', allow_none=True)
 
         self.name = arch_name
         self.route_blocks = []
@@ -48,16 +54,16 @@ class BaseArch:
                 continue
 
             # user overrides template
-            if valid_override(rb.keyword, templates, str):
-                rb.template = templates[rb.keyword]
+            if valid_override(rb.keyword, custom_templates, str):
+                rb.template = custom_templates[rb.keyword]
 
             # user overrides reroute
-            if valid_override(rb.keyword, reroutes, str):
-                rb.reroute_to = reroutes[rb.keyword]
+            if valid_override(rb.keyword, custom_reroutes, str):
+                rb.reroute_to = custom_reroutes[rb.keyword]
 
             # user overrides reroute_kwargs
-            if valid_override(rb.keyword, reroutes_kwargs, dict):
-                for argk, argv in reroutes_kwargs[rb.keyword].items():
+            if valid_override(rb.keyword, custom_reroutes_kwargs, dict):
+                for argk, argv in custom_reroutes_kwargs[rb.keyword].items():
                     rb.reroute_kwargs[argk] = argv
 
             # user override custom_callbacks
@@ -65,20 +71,16 @@ class BaseArch:
                 for tag, user_cb in custom_callbacks[rb.keyword].items():
                     if not callable(user_cb):
                         raise TypeError(f'custom_callbacks[\'{rb.keyword}\'][\'{tag}\'] not callable')
-                    rb.custom_callbacks[tag] = user_cb
+                    rb.callbacks[tag] = user_cb
 
             # add rb to route_blocks list
             self.route_blocks.append(rb)
 
-        if url_prefix is None:
-            self._url_prefix = '/%s' % arch_name
-        elif url_prefix == '/':
-            self._url_prefix = None
+        if custom_url_prefix is None:
+            self.url_prefix = '/%s' % arch_name
+        elif custom_url_prefix == '/':
+            self.url_prefix = None
         else:
-            self._url_prefix = url_prefix
+            self.url_prefix = custom_url_prefix
 
-        self.bp = Blueprint(self.name, __name__, url_prefix = self._url_prefix)
-
-    def _debug(self):
-        for rb in self.route_blocks:
-            rb._debug()
+        self.bp = Blueprint(self.name, __name__, url_prefix = self.url_prefix)

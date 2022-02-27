@@ -16,7 +16,7 @@ from sqlalchemy import create_engine, MetaData, inspect
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from . import base
+from ... import base
 
 SQLDeclarativeBase = declarative_base()
 
@@ -110,5 +110,5 @@ class ContentManager(base.ContentManager):
         # rollback changes (encountered an exception)
         self.session.rollback()
 
-    def shutdown_session(self):
+    def shutdown_session(self, exception):
         self.session.remove()

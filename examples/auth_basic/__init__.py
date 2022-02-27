@@ -1,7 +1,7 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
-from flask_arch.auth import Arch
-from flask_arch.auth.user import VolatileUserManager, BasicPasswordUser
+from flask_arch.auth import Arch, PasswordAuth
+from flask_arch.user import ProcMemUserManager
 from flask_login import current_user, login_required
 
 def create_app(test_config=None):
@@ -12,11 +12,11 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     # use a volatile manager to handle user, users are ephemeral
-    user_manager = VolatileUserManager(BasicPasswordUser)
+    user_manager = ProcMemUserManager(PasswordAuth)
 
     # this user will persist because it is defined in the script
-    user = BasicPasswordUser('jason', 'hunter2')
-    user_manager.insert(user)
+    u = user_manager.create('jason', 'hunter2')
+    user_manager.insert(u)
 
     # create arch and initialize the app with it
     minimal = Arch(user_manager, 'simple',
@@ -26,7 +26,7 @@ def create_app(test_config=None):
 
     # both arch may share the same user manager
     featured = Arch(user_manager, 'iud',
-        templates = {
+        custom_templates = {
             'login': 'signin.html',
             'profile': 'home.html',
             'renew': 'password.html',
