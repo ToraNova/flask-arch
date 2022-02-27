@@ -29,16 +29,15 @@ class MyBlock(RouteBlock):
 
 
 class MyArch(BaseArch):
-    def __init__(self, arch_name = 'default-myarch', **custom_options):
+    def __init__(self, arch_name='default-myarch', **custom_options):
+        super().__init__(arch_name, **custom_options)
 
-        route_blocks = [
-                RenderBlock('r1'),
-                MyBlock('r2', reroute_to='r2', methods=['GET', 'POST']),
-                RerouteBlock('rtest', '/reroute-test', reroute_to='hi', reroute_external=True),
-                RenderBlock('missing', '/missing-template'),
-                ]
-
-        super().__init__(arch_name, route_blocks, **custom_options)
+        self.route_blocks = [
+            RenderBlock('r1'),
+            MyBlock('r2', reroute_to='r2', methods=['GET', 'POST']),
+            RerouteBlock('rtest', '/reroute-test', reroute_to='hi', reroute_external=True),
+            RenderBlock('missing', '/missing-template'),
+        ]
 
     def init_app(self, app):
         super().init_app(app)

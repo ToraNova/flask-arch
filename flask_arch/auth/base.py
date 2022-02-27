@@ -20,6 +20,7 @@ class Arch(BaseArch):
         templ is a dictionary that returns user specified templates to user on given routes
         reroutes is a dictionary that reroutes the user after certain actions on given routes
         '''
+        super().__init__(arch_name, **kwargs)
         ensure_type(user_manager, BaseContentManager, 'user_manager')
         ensure_type(routes_disabled, list, 'routes_disabled')
         ensure_type(route_blocks, list, 'custom_route_blocks')
@@ -31,44 +32,44 @@ class Arch(BaseArch):
         UPDATE  = 'renew'
         DELETE  = 'remove'
 
-        rbs = route_blocks.copy()
+        self.route_blocks = route_blocks.copy()
 
-        if PROFILE not in rbs:
+        if PROFILE not in self.route_blocks:
             r = RenderBlock(PROFILE, access_policy=login_required)
-            rbs.append(r)
+            self.route_blocks.append(r)
 
-        if LOGIN not in rbs:
+        if LOGIN not in self.route_blocks:
             r = LoginBlock(LOGIN, user_manager, reroute_to=PROFILE)
             r.set_custom_callback(tags.INVALID_USER, callbacks.default_login_invalid)
             r.set_custom_callback(tags.INVALID_AUTH, callbacks.default_login_invalid)
-            rbs.append(r)
+            self.route_blocks.append(r)
 
-        if LOGOUT not in rbs:
+        if LOGOUT not in self.route_blocks:
             r = LogoutBlock(LOGOUT, user_manager, reroute_to=LOGIN)
-            rbs.append(r)
+            self.route_blocks.append(r)
 
-        if INSERT not in rbs and INSERT not in routes_disabled:
+        if INSERT not in self.route_blocks and INSERT not in routes_disabled:
             r = IUDBlock(INSERT, user_manager, 'insert',
                     reroute_to=LOGIN)
             r.set_custom_callback(tags.INTEGRITY_ERROR,
                     lambda arch, e: arch.flash('already exist', 'warn'))
-            rbs.append(r)
+            self.route_blocks.append(r)
 
-        if UPDATE not in rbs and UPDATE not in routes_disabled:
+        if UPDATE not in self.route_blocks and UPDATE not in routes_disabled:
             r = IUDBlock(UPDATE, user_manager, 'update',
                     reroute_to=PROFILE, access_policy=login_required)
             r.set_custom_callback(tags.INTEGRITY_ERROR,
                     lambda arch, e: arch.flash(str(e), 'warn'))
-            rbs.append(r)
+            self.route_blocks.append(r)
 
-        if DELETE not in rbs and DELETE not in routes_disabled:
+        if DELETE not in self.route_blocks and DELETE not in routes_disabled:
             r = IUDBlock(DELETE, user_manager, 'delete',
                     reroute_to=LOGIN, access_policy=login_required)
             r.set_custom_callback(tags.INTEGRITY_ERROR,
                     lambda arch, e: arch.flash(str(e), 'warn'))
-            rbs.append(r)
+            self.route_blocks.append(r)
 
-        for r in rbs:
+        for r in self.route_blocks:
             r.set_custom_callback(tags.SUCCESS, callbacks.default_success)
             r.set_custom_callback(tags.USER_ERROR, callbacks.default_user_error)
 
@@ -89,7 +90,6 @@ class Arch(BaseArch):
 
         self.shutdown = shutdown
 
-        super().__init__(arch_name, rbs, **kwargs)
 
     def init_app(self, app):
         super().init_app(app)

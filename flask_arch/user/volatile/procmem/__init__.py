@@ -1,7 +1,7 @@
 from .base import User
 
 from ....auth import BaseAuth
-from ....cms.volatile import ContentManager
+from ....cms.volatile.procmem import ContentManager
 
 class UserManager(ContentManager):
 

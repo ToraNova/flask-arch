@@ -1,5 +1,5 @@
-from . import base
-from .. import exceptions
+from ... import base
+from .... import exceptions
 
 class ContentManager(base.ContentManager):
 

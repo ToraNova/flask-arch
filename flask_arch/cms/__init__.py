@@ -1,7 +1,9 @@
 # exports
 from .base import Content as BaseContent
 from .base import ContentManager as BaseContentManager
-from .volatile import ContentManager as VolatileContentManager
+
+from .volatile.procmem import ContentManager as ProcMemContentManager
+
 from .persist.sql import Content as SQLContent
 from .persist.sql import ContentManager as SQLContentManager
 
