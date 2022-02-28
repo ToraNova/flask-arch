@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<h1>type password to confirm delete</h1>
+<form method="post">
+    <label>password</label></br>
+    <input name="password" type="password" required></br>
+    <button type="submit">delete account</button>
+</form>
+{% endblock %}

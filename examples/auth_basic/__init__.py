@@ -1,8 +1,9 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
-from flask_arch.auth import Arch, PasswordAuth
-from flask_arch.user import ProcMemUserManager
 from flask_login import current_user, login_required
+
+from flask_arch.auth import AuthArch, PasswordAuth
+from flask_arch.user import ProcMemUserManager
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -15,17 +16,17 @@ def create_app(test_config=None):
     user_manager = ProcMemUserManager(PasswordAuth)
 
     # this user will persist because it is defined in the script
-    u = user_manager.create('jason', 'hunter2')
+    u = user_manager.construct('jason', 'hunter2')
     user_manager.insert(u)
 
     # create arch and initialize the app with it
-    minimal = Arch(user_manager, 'simple',
+    minimal = AuthArch(user_manager, 'simple',
         # disable register, delete and update route
         routes_disabled = ['register', 'renew', 'remove'],
     )
 
     # both arch may share the same user manager
-    featured = Arch(user_manager, 'iud',
+    featured = AuthArch(user_manager, 'iud',
         custom_templates = {
             'login': 'signin.html',
             'profile': 'home.html',

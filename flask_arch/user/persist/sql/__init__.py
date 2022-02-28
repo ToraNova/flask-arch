@@ -1,5 +1,4 @@
 from .base import User
-from .email import NameLoginUser, EmailLoginUser
 
 from ....auth import BaseAuth
 from ....cms.persist.sql import ContentManager, SQLDeclarativeBase

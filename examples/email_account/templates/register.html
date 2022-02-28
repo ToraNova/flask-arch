@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<form method="post">
+    <label>username</label></br>
+    <input name="username" required></br>
+    <label>password</label></br>
+    <input name="password" type="password" required></br>
+    <label>confirm password</label></br>
+    <input name="password_confirm" type="password" required></br>
+    <label>token</label></br>
+    {% if 'token' in request.args %}
+        <input name="jwt" value="{{ request.args['token'] }}" required></br>
+    {% else %}
+        <input name="jwt" value="" required></br>
+    {% endif %}
+    <button type="submit">create account</button>
+</form>
+{% endblock %}

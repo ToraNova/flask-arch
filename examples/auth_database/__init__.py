@@ -1,9 +1,10 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
-from flask_arch.cms import declarative_base
-from flask_arch.auth import Arch, PasswordAuth
-from flask_arch.user import SQLUserManager
 from flask_login import current_user, login_required
+
+from flask_arch.cms import declarative_base
+from flask_arch.auth import AuthArch, PasswordAuth
+from flask_arch.user import SQLUserManager
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -21,23 +22,16 @@ def create_app(test_config=None):
     user_manager = SQLUserManager(PasswordAuth, app.config['DBURI'], orm_base=my_sql_declarative_base)
 
     # for first time
-    init_add = not user_manager.table_exists()
-
-    # create table
-    try:
+    if not user_manager.table_exists():
+        # create table
         user_manager.create_table()
-    except Exception as e:
-        print(e)
-        pass
-
-    if init_add:
         # first time
-        u = user_manager.create('jason', 'hunter2')
+        u = user_manager.construct('jason', 'hunter2')
         user_manager.insert(u)
         user_manager.commit()
 
 
-    persist = Arch(user_manager, 'database_test')
+    persist = AuthArch(user_manager, 'database_test')
 
     persist.init_app(app)
 

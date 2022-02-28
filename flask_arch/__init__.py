@@ -3,5 +3,5 @@
 # author: toranova
 # mailto: chia_jason96@live.com
 
-from .base import BaseArch
+from .base import Arch as BaseArch
 from .blocks import RouteBlock

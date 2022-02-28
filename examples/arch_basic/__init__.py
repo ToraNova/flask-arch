@@ -1,5 +1,6 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
+
 from flask_arch import BaseArch, RouteBlock
 from flask_arch.blocks.basic import RenderBlock, RerouteBlock
 

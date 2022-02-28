@@ -74,7 +74,7 @@ class IUDBlock(AuthManageBlock):
 
         if action == 'insert':
             def prepare():
-                user = self.user_manager.content_class.create(request.form.copy())
+                user = self.user_manager.create(request.form.copy())
                 return (user,)
 
             def execute(user):

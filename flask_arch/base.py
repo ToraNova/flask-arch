@@ -13,7 +13,12 @@ def valid_override(keyword, cdict, strict_type):
         return True
     return False
 
-class BaseArch:
+class Arch:
+
+    def configure(self, keyword):
+        if keyword not in self.route_blocks:
+            raise KeyError('routeblock \'{keyword}\' cannot be configured because it does not exist.')
+        return self.route_blocks[keyword]
 
     def add_route_blocks(self, rblist):
         for rb in rblist:
@@ -31,15 +36,6 @@ class BaseArch:
             rb._debug()
 
     def init_app(self, app):
-
-        if self.custom_url_prefix is None:
-            self.url_prefix = '/%s' % self.name
-        elif self.custom_url_prefix == '/':
-            self.url_prefix = None
-        else:
-            self.url_prefix = self.custom_url_prefix
-
-        self.bp = Blueprint(self.name, __name__, url_prefix = self.url_prefix)
 
         for rb in self.route_blocks.values():
             if not isinstance(rb, RouteBlock):
@@ -99,3 +95,13 @@ class BaseArch:
         self.routes_disabled = routes_disabled.copy()
 
         self.route_blocks = {}
+
+        if self.custom_url_prefix is None:
+            self.url_prefix = '/%s' % self.name
+        elif self.custom_url_prefix == '/':
+            self.url_prefix = None
+        else:
+            self.url_prefix = self.custom_url_prefix
+
+        self.bp = Blueprint(self.name, __name__, url_prefix = self.url_prefix)
+        self.blueprint = self.bp # alias

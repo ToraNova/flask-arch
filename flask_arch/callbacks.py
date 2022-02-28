@@ -8,7 +8,7 @@ def default_user_error(rb, e):
 
 def default_int_error(rb, e):
     #rb.flash('already exist', 'warn')
-    rb.flash(str(e), 'err')
+    rb.flash('integrity error', 'warn')
     return rb.render(), 409
 
 def default_login_invalid(rb, e):

@@ -42,25 +42,20 @@ class Arch(BaseArch):
 
         rb = IUDBlock(INSERT, user_manager, 'insert',
                 reroute_to=LOGIN)
-        rb.set_custom_callback(tags.INTEGRITY_ERROR,
-                lambda arch, e: arch.flash('already exist', 'warn'))
         self.add_route_block(rb)
 
         rb = IUDBlock(UPDATE, user_manager, 'update',
                 reroute_to=PROFILE, access_policy=login_required)
-        rb.set_custom_callback(tags.INTEGRITY_ERROR,
-                lambda arch, e: arch.flash(str(e), 'warn'))
         self.add_route_block(rb)
 
         rb = IUDBlock(DELETE, user_manager, 'delete',
                 reroute_to=LOGIN, access_policy=login_required)
-        rb.set_custom_callback(tags.INTEGRITY_ERROR,
-                lambda arch, e: arch.flash(str(e), 'warn'))
         self.add_route_block(rb)
 
         for rb in self.route_blocks.values():
             rb.set_custom_callback(tags.SUCCESS, callbacks.default_success)
             rb.set_custom_callback(tags.USER_ERROR, callbacks.default_user_error)
+            rb.set_custom_callback(tags.INTEGRITY_ERROR, callbacks.default_int_error)
 
         self.login_manager = LoginManager()
 

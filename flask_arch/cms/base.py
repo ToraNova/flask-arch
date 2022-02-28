@@ -40,8 +40,16 @@ class ContentManager:
             raise TypeError(f'{content_class} should be a subclass of {Content}.')
         self.content_class = content_class
 
-    def create(self, *args, **kwargs):
+    def construct(self, *args, **kwargs):
         return self.content_class(*args, **kwargs)
+
+    def create(self, data, creator=None):
+        nc = self.content_class.create(data)
+        if isinstance(creator, Content):
+            cid = creator.get_id()
+            if cid is not None:
+                nc.owner_id = cid
+        return nc
 
     # query user (specially for usermanagers only)
     def select_user(self, userid):
