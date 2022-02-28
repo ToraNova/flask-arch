@@ -30,6 +30,13 @@ class BaseAuth:
         '''
         raise NotImplementedError(f'set_auth_data callback on {self.__class__.__name__} not implemented.')
 
+    def parse_reset_data(cls, data):
+        '''
+        this is used for something like password resets
+        return an identifier and a new auth data
+        '''
+        raise NotImplementedError(f'parse_reset_data callback on {cls.__name__} not implemented.')
+
 class PasswordAuth(BaseAuth):
 
     def __init__(self, username, password):

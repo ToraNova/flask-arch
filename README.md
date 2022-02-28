@@ -26,3 +26,4 @@ runtest.sh
 * Authentication
     1. [Minimal Login (No Database)](examples/auth_basic/__init__.py)
     2. [With SQLAlchemy](examples/auth_database/__init__.py)
+    3. [Email Account](examples/email_account/__init__.py)

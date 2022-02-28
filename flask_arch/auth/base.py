@@ -8,7 +8,7 @@ from .blocks import LoginBlock, LogoutBlock, IUDBlock
 from .. import BaseArch, tags, callbacks
 from ..utils import ensure_type
 from ..blocks.basic import RenderBlock
-from ..cms import BaseContentManager
+from ..user import BaseUserManager
 
 # basic.Arch
 class Arch(BaseArch):
@@ -20,13 +20,14 @@ class Arch(BaseArch):
         reroutes is a dictionary that reroutes the user after certain actions on given routes
         '''
         super().__init__(arch_name, **kwargs)
-        ensure_type(user_manager, BaseContentManager, 'user_manager')
+        ensure_type(user_manager, BaseUserManager, 'user_manager')
 
         LOGIN   = 'login'
         LOGOUT  = 'logout'
         PROFILE = 'profile'
         INSERT  = 'register'
         UPDATE  = 'renew'
+        RESET  = 'reset'
         DELETE  = 'remove'
 
         rb = RenderBlock(PROFILE, access_policy=login_required)
@@ -46,6 +47,11 @@ class Arch(BaseArch):
 
         rb = IUDBlock(UPDATE, user_manager, 'update',
                 reroute_to=PROFILE, access_policy=login_required)
+        self.add_route_block(rb)
+
+        rb = IUDBlock(RESET, user_manager, 'reset',
+                reroute_to=LOGIN)
+        rb.set_custom_callback(tags.INVALID_USER, callbacks.default_login_invalid)
         self.add_route_block(rb)
 
         rb = IUDBlock(DELETE, user_manager, 'delete',

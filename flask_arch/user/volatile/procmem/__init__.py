@@ -1,9 +1,10 @@
 from .base import User
 
-from ....auth import BaseAuth
+from ...base import BaseUserManager
+from ....auth.user import BaseAuth
 from ....cms.volatile.procmem import ContentManager
 
-class UserManager(ContentManager):
+class UserManager(BaseUserManager, ContentManager):
 
     def __init__(self, auth_class, user_class=User):
         if not issubclass(auth_class, BaseAuth):

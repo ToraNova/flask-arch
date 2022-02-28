@@ -51,10 +51,6 @@ class ContentManager:
                 nc.owner_id = cid
         return nc
 
-    # query user (specially for usermanagers only)
-    def select_user(self, userid):
-        raise NotImplementedError(f'select_user callback on {self.__class__.__name__} not implemented.')
-
     # get queries
     def select(self, query):
         # specific query

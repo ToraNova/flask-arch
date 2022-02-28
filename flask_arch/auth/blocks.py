@@ -3,12 +3,16 @@ from flask import request
 from flask_login import login_user, logout_user, current_user
 
 from .. import tags, exceptions
+from .user import BaseAuth
 from ..cms import ContentManageBlock
+from ..user import BaseUserManager
+from ..utils import ensure_type
 
 class AuthManageBlock(ContentManageBlock):
 
     def __init__(self, keyword, user_manager, **kwargs):
         super().__init__(keyword, user_manager, **kwargs)
+        ensure_type(user_manager, BaseUserManager, 'user_manager')
         self.user_manager = self.content_manager
 
 class LogoutBlock(AuthManageBlock):
@@ -31,7 +35,7 @@ class LoginBlock(AuthManageBlock):
         if request.method == 'POST':
             identifier, auth_data = None, None
             try:
-                identifier, auth_data = self.user_manager.content_class.parse_auth_data(
+                identifier, auth_data = self.user_manager.parse_login(
                     request.form.copy(),
                 )
             except exceptions.UserError as e:
@@ -42,7 +46,7 @@ class LoginBlock(AuthManageBlock):
 
             try:
                 user = self.user_manager.select_user(identifier)
-                if user is None:
+                if not isinstance(user, BaseAuth):
                     return self.callback(tags.INVALID_USER, identifier)
 
                 if not user.auth(auth_data):
@@ -98,6 +102,24 @@ class IUDBlock(AuthManageBlock):
             def execute(identifier, user):
                 # insert the updated new user
                 login_user(user) # login the copy
+                self.user_manager.update(user)
+                self.user_manager.commit() # commit insertion
+                self.callback(tags.SUCCESS, identifier)
+                return self.reroute()
+
+        elif action == 'reset':
+
+            def prepare():
+                identifier, new_auth_data = self.user_manager.reset_user(
+                    request.form.copy()
+                )
+                user = self.user_manager.select_user(identifier)
+                if not isinstance(user, BaseAuth):
+                    raise exceptions.UserError(401, 'invalid credentials')
+                user.set_auth_data(new_auth_data)  # update new auth data
+                return (user, identifier)
+
+            def execute(user, identifier):
                 self.user_manager.update(user)
                 self.user_manager.commit() # commit insertion
                 self.callback(tags.SUCCESS, identifier)

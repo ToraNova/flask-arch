@@ -27,3 +27,16 @@ class BaseUser(BaseContent):
     def populate_template_data(cls):
         # no template data to populate, use current_user to obtain user info
         pass
+
+class BaseUserManager:
+
+    def select_user(self, userid):
+        raise NotImplementedError(f'select_user method on {self.__class__.__name__} not implemented.')
+
+    def reset_user(self, data):
+        ru = self.content_class.parse_reset_data(data)
+        return ru
+
+    def parse_login(self, data):
+        id, ad = self.content_class.parse_auth_data(data)
+        return id, ad

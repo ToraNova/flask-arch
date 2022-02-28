@@ -1,9 +1,10 @@
 from .base import User
 
-from ....auth import BaseAuth
+from ...base import BaseUserManager
+from ....auth.user import BaseAuth
 from ....cms.persist.sql import ContentManager, SQLDeclarativeBase
 
-class UserManager(ContentManager):
+class UserManager(BaseUserManager, ContentManager):
 
     def __init__(self, auth_class, database_uri, user_class=User, orm_base=SQLDeclarativeBase):
         if not issubclass(auth_class, BaseAuth):

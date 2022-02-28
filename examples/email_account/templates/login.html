@@ -4,6 +4,7 @@
 {% block header %}{% endblock %}
 
 {% block content %}
+<h1>login</h1>
 <form method="post">
     <label>email</label></br>
     <input name="email" required></br>
@@ -12,4 +13,5 @@
     <button type="submit">sign in</button>
 </form>
 <a href="{{ url_for('email_verify') }}">signup here</a>
+<a href="{{ url_for('password_reset') }}">forgot password</a>
 {% endblock %}

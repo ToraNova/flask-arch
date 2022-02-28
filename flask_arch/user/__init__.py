@@ -1,6 +1,6 @@
 # basic user class to work with flask-login
 
-from .base import BaseUser
+from .base import BaseUser, BaseUserManager
 from .volatile.procmem import User as ProcMemUser
 from .volatile.procmem import UserManager as ProcMemUserManager
 

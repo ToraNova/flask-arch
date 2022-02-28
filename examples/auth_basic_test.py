@@ -137,6 +137,10 @@ def test_create(client):
     assert resp.status_code == 200
     assert b'green">register successful' in resp.data
 
+    resp = client.post('/iud/register', data={'username':'newuser', 'password': 'newpass', 'password_confirm': 'newpass'}, follow_redirects=True)
+    assert resp.status_code == 409
+    assert b'red">uc exists' in resp.data
+
     resp = client.post('/iud/login', data={'username': 'newuser', 'password': 'newpass'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
