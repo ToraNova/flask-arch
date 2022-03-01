@@ -119,10 +119,14 @@ def test_1(volatile_client, persist_client):
         resp = c.post('/auth/reset', data={'password_new': 'hunter2', 'password_confirm': 'hunter2'})
         assert resp.status_code == 400
 
+        resp = c.post('/auth/reset', data={'password_new': 'hunter2', 'password_confirm': 'hunter2', 'token':token})
+        assert resp.status_code == 400
+
         taint = token
         taint += 'z'
         resp = c.post('/auth/reset', data={'password_new': 'hunter2', 'password_confirm': 'hunter2', 'jwt':taint})
-        assert resp.status_code == 400
+        assert resp.status_code == 401
+        assert b'red">invalid token' in resp.data
 
         resp = c.post('/auth/reset', data={'password_new': 'hunter2', 'password_confirm': 'hunter2', 'jwt':token}, follow_redirects=True)
         assert len(resp.history) == 1
@@ -135,5 +139,10 @@ def test_1(volatile_client, persist_client):
         resp = c.post('/auth/login', data={'email':'user@domain.com', 'password': 'hunter2'}, follow_redirects=True)
         assert len(resp.history) == 1
         assert resp.status_code == 200
+
+        # should not be able to re-use the same token after reset successful
+        resp = c.post('/auth/reset', data={'password_new': 'hunter2', 'password_confirm': 'hunter2', 'jwt':token}, follow_redirects=True)
+        assert resp.status_code == 401
+        assert b'red">invalid token' in resp.data
 
         volatile = False

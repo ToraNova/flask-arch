@@ -4,10 +4,10 @@
 from flask import abort
 from flask_login import LoginManager, login_required
 
-from .blocks import LoginBlock, LogoutBlock, IUDBlock
+from .blocks import LoginBlock, LogoutBlock, RegisterBlock, RenewBlock, ResetBlock, RemoveBlock
 from .. import BaseArch, tags, callbacks
 from ..utils import ensure_type
-from ..blocks.basic import RenderBlock
+from ..blocks import RenderBlock
 from ..user import BaseUserManager
 
 # basic.Arch
@@ -34,28 +34,21 @@ class Arch(BaseArch):
         self.add_route_block(rb)
 
         rb = LoginBlock(LOGIN, user_manager, reroute_to=PROFILE)
-        rb.set_custom_callback(tags.INVALID_USER, callbacks.default_login_invalid)
-        rb.set_custom_callback(tags.INVALID_AUTH, callbacks.default_login_invalid)
         self.add_route_block(rb)
 
         rb = LogoutBlock(LOGOUT, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
-        rb = IUDBlock(INSERT, user_manager, 'insert',
-                reroute_to=LOGIN)
+        rb = RegisterBlock(INSERT, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
-        rb = IUDBlock(UPDATE, user_manager, 'update',
-                reroute_to=PROFILE, access_policy=login_required)
+        rb = RenewBlock(UPDATE, user_manager, reroute_to=PROFILE, access_policy=login_required)
         self.add_route_block(rb)
 
-        rb = IUDBlock(RESET, user_manager, 'reset',
-                reroute_to=LOGIN)
-        rb.set_custom_callback(tags.INVALID_USER, callbacks.default_login_invalid)
+        rb = ResetBlock(RESET, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
-        rb = IUDBlock(DELETE, user_manager, 'delete',
-                reroute_to=LOGIN, access_policy=login_required)
+        rb = RemoveBlock(DELETE, user_manager, reroute_to=LOGIN, access_policy=login_required)
         self.add_route_block(rb)
 
         for rb in self.route_blocks.values():
@@ -72,6 +65,8 @@ class Arch(BaseArch):
         @self.login_manager.user_loader
         def loader(userid):
             user = user_manager.select_user(userid)
+            if user is None:
+                return None
             user.is_authenticated = True
             return user
 

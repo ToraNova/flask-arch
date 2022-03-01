@@ -33,9 +33,15 @@ class BaseAuth:
     def parse_reset_data(cls, data):
         '''
         this is used for something like password resets
-        return an identifier and a new auth data
+        return an identifier
         '''
         raise NotImplementedError(f'parse_reset_data callback on {cls.__name__} not implemented.')
+
+    def reset(self, data):
+        '''
+        this is for the user to reset
+        '''
+        raise NotImplementedError(f'reset callback on {self.__cls__.__name__} not implemented.')
 
 class PasswordAuth(BaseAuth):
 
@@ -60,21 +66,21 @@ class PasswordAuth(BaseAuth):
     @classmethod
     def create(cls, data):
         if data['password'] != data['password_confirm']:
-            raise exceptions.UserError(400, 'password do not match')
+            raise exceptions.UserError('password do not match', 400)
         nu = cls(data['username'], data['password'])
         return nu
 
     def update(self, data):
         if data.get('password_new'):
             if not self.auth(data['password_old']):
-                raise exceptions.UserError(401, 'invalid old password')
+                raise exceptions.UserError('invalid old password', 401)
 
             if data['password_new'] != data['password_confirm']:
-                raise exceptions.UserError(400, 'new password do not match')
+                raise exceptions.UserError('new password do not match', 400)
             self.set_auth_data(data['password_confirm'])
 
     def delete(self, data):
         if not self.auth(data['password']):
-            raise exceptions.UserError(401, 'invalid password')
+            raise exceptions.UserError('invalid password', 401)
         # do something here
         pass

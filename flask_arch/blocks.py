@@ -1,10 +1,8 @@
-
-from ..utils import ensure_type, ensure_callable
+from .utils import ensure_type, ensure_callable
 
 import traceback
 from jinja2.exceptions import TemplateNotFound
 from flask import redirect, url_for, flash, render_template, request, abort, current_app
-
 
 # late-binding vs. early binding
 # https://stackoverflow.com/questions/3431676/creating-functions-in-a-loop
@@ -151,3 +149,13 @@ class RouteBlock:
 
     def flash(self, msg, cat = 'ok'):
         flash(msg, cat)
+
+class RenderBlock(RouteBlock):
+
+    def view(self):
+        return self.render()
+
+class RerouteBlock(RouteBlock):
+
+    def view(self):
+        return self.reroute()

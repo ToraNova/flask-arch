@@ -33,10 +33,10 @@ class BaseUserManager:
     def select_user(self, userid):
         raise NotImplementedError(f'select_user method on {self.__class__.__name__} not implemented.')
 
-    def reset_user(self, data):
-        ru = self.content_class.parse_reset_data(data)
-        return ru
-
     def parse_login(self, data):
         id, ad = self.content_class.parse_auth_data(data)
         return id, ad
+
+    def parse_reset(self, data):
+        id = self.content_class.parse_reset_data(data)
+        return id

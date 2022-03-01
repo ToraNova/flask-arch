@@ -12,12 +12,5 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.declarative import declarative_base
 
-from ..utils import ensure_type
-from ..blocks import RouteBlock
-
-class ContentManageBlock(RouteBlock):
-
-    def __init__(self, keyword, content_manager, **kwargs):
-        super().__init__(keyword, **kwargs)
-        ensure_type(content_manager, BaseContentManager, 'content_manager')
-        self.content_manager = content_manager
+from .blocks import ManageBlock as ContentManageBlock
+from .blocks import PrepExecBlock as ContentPrepExecBlock

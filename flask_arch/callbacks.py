@@ -10,7 +10,3 @@ def default_int_error(rb, e):
     #rb.flash('already exist', 'warn')
     rb.flash('integrity error', 'warn')
     return rb.render(), 409
-
-def default_login_invalid(rb, e):
-    rb.flash('invalid credentials', 'err')
-    return rb.render(), 401

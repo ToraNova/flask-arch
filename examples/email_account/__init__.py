@@ -34,15 +34,31 @@ class MyPasswordAuth(PasswordAuth):
 
     @classmethod
     def parse_reset_data(cls, data):
-        jd = jwt.decode(data['jwt'], current_app.secret_key, algorithms=["HS256"])
+        # this is just one way, alternatively, data['email'] can also be used
+        # the function is required for the user_manager to 'select' the right user
+        # to perform password reset
+        jd = jwt.decode(data['jwt'], options={"verify_signature": False})
+        return jd['email']
+
+    def reset(self, data):
+        # use the user's authentication data as the key to the jwt,
+        # this effectively allows one-time password resets per password
+        try:
+            jd = jwt.decode(data['jwt'], self.authd, algorithms=["HS256"])
+        except Exception as e:
+            raise UserError('invalid token', 401)
         if data['password_new'] != data['password_confirm']:
-            raise UserError(400, 'password do not match')
-        return jd['email'], data['password_confirm']
+            raise UserError('password do not match', 400)
+        if jd['email'] != self.email:
+            # we should never reach here
+            raise UserError('email do not match', 401)
+
+        self.set_auth_data(data['password_confirm'])
 
     @classmethod
     def create(cls, data):
         if data['password'] != data['password_confirm']:
-            raise UserError(400, 'password do not match')
+            raise UserError('password do not match', 400)
         # jwt is obtained from email verify request
         jd = jwt.decode(data['jwt'], current_app.secret_key, algorithms=["HS256"])
         nu = cls(jd['email'], data['username'], data['password'])
@@ -102,8 +118,15 @@ def create_app(test_config=None):
                 abort(400)
 
             try:
-                # send an email to the user
-                token = jwt.encode({'email':email}, current_app.secret_key, algorithm='HS256')
+                user = um.select_user(email)
+                if user is None:
+                    flash('invalid user', 'err')
+                    return render_template('get_email.html')
+
+                # send an email to the user, with the token containing the email,
+                # using the user's current password hash as the secret key
+                # this way, if the user has reset their password, the token is no longer valid
+                token = jwt.encode({'email':email}, user.authd, algorithm='HS256')
                 rediru = url_for('auth.reset', token=token, _external=True)
 
                 # simulate sending email on the browser itself

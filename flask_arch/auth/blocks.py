@@ -4,18 +4,16 @@ from flask_login import login_user, logout_user, current_user
 
 from .. import tags, exceptions
 from .user import BaseAuth
-from ..cms import ContentManageBlock
+from ..cms import ContentManageBlock, ContentPrepExecBlock
 from ..user import BaseUserManager
-from ..utils import ensure_type
+from ..utils import ensure_type, ensure_callable
 
-class AuthManageBlock(ContentManageBlock):
+class LogoutBlock(ContentManageBlock):
 
     def __init__(self, keyword, user_manager, **kwargs):
         super().__init__(keyword, user_manager, **kwargs)
         ensure_type(user_manager, BaseUserManager, 'user_manager')
         self.user_manager = self.content_manager
-
-class LogoutBlock(AuthManageBlock):
 
     def view(self):
         if not current_user.is_authenticated:
@@ -25,150 +23,94 @@ class LogoutBlock(AuthManageBlock):
         self.callback(tags.SUCCESS, identifier)
         return self.reroute()
 
-class LoginBlock(AuthManageBlock):
+class PrepExecBlock(ContentPrepExecBlock):
 
-    @property
-    def default_methods(self):
-        return ['GET', 'POST']
-
-    def view(self):
-        if request.method == 'POST':
-            identifier, auth_data = None, None
-            try:
-                identifier, auth_data = self.user_manager.parse_login(
-                    request.form.copy(),
-                )
-            except exceptions.UserError as e:
-                return self.callback(tags.USER_ERROR, e)
-            except Exception as e:
-                # client error
-                self.client_error(e)
-
-            try:
-                user = self.user_manager.select_user(identifier)
-                if not isinstance(user, BaseAuth):
-                    return self.callback(tags.INVALID_USER, identifier)
-
-                if not user.auth(auth_data):
-                    return self.callback(tags.INVALID_AUTH, identifier)
-
-                # auth success
-                login_user(user)
-                self.callback(tags.SUCCESS, identifier)
-                return self.reroute()
-            except exceptions.UserError as e:
-                return self.callback(tags.USER_ERROR, e)
-            except Exception as e:
-                # server error: unexpected exception
-                self.user_manager.rollback()  # rollback
-                self.server_error(e)
-
-        # render template
-        return self.render(), 200
-
-class IUDBlock(AuthManageBlock):
-
-    @property
-    def default_methods(self):
-        return ['GET', 'POST']
-
-    def __init__(self, keyword, user_manager, action, **kwargs):
+    def __init__(self, keyword, user_manager, **kwargs):
         super().__init__(keyword, user_manager, **kwargs)
-        self.action = action
+        ensure_type(user_manager, BaseUserManager, 'user_manager')
+        self.user_manager = self.content_manager
 
-        if action == 'insert':
-            def prepare():
-                user = self.user_manager.create(request.form.copy())
-                return (user,)
+class LoginBlock(PrepExecBlock):
 
-            def execute(user):
-                # insert new user
-                identifier = self.user_manager.insert(user)
-                self.user_manager.commit() # commit insertion
-                self.callback(tags.SUCCESS, identifier)
-                return self.reroute()
+    def prepare(self):
+        identifier, auth_data = self.user_manager.parse_login(request.form.copy())
+        user = self.user_manager.select_user(identifier)
+        if not isinstance(user, BaseAuth):
+            raise exceptions.INVALID_CREDS
 
-        elif action == 'update':
+        if not user.auth(auth_data):
+            raise exceptions.INVALID_CREDS
 
-            def prepare():
-                # shallow copy a user (as opposed to deepcopy)
-                user = copy.deepcopy(current_user)
-                identifier = user.get_id()
-                # update current user from request
-                user.update(request.form.copy())
-                logout_user() # logout user from flask-login
-                return (identifier, user)
+        return (identifier, user)
 
-            def execute(identifier, user):
-                # insert the updated new user
-                login_user(user) # login the copy
-                self.user_manager.update(user)
-                self.user_manager.commit() # commit insertion
-                self.callback(tags.SUCCESS, identifier)
-                return self.reroute()
+    def execute(self, identifier, user):
+        # auth success
+        login_user(user)
+        self.callback(tags.SUCCESS, identifier)
+        return self.reroute()
 
-        elif action == 'reset':
+class RegisterBlock(PrepExecBlock):
 
-            def prepare():
-                identifier, new_auth_data = self.user_manager.reset_user(
-                    request.form.copy()
-                )
-                user = self.user_manager.select_user(identifier)
-                if not isinstance(user, BaseAuth):
-                    raise exceptions.UserError(401, 'invalid credentials')
-                user.set_auth_data(new_auth_data)  # update new auth data
-                return (user, identifier)
+    def prepare(self):
+        user = self.user_manager.create(request.form.copy())
+        return (user,)
 
-            def execute(user, identifier):
-                self.user_manager.update(user)
-                self.user_manager.commit() # commit insertion
-                self.callback(tags.SUCCESS, identifier)
-                return self.reroute()
+    def execute(self, user):
+        # insert new user
+        identifier = self.user_manager.insert(user)
+        self.user_manager.commit() # commit insertion
+        self.callback(tags.SUCCESS, identifier)
+        return self.reroute()
 
-        elif action == 'delete':
+class RenewBlock(PrepExecBlock):
 
-            def prepare():
-                # shallow copy a user (as opposed to deepcopy)
-                user = copy.deepcopy(current_user)
-                identifier = user.get_id()
-                # update current user from request
-                user.delete(request.form.copy())
-                logout_user()
-                return (identifier, user)
+    def prepare(self):
+        # shallow copy a user (as opposed to deepcopy)
+        user = copy.deepcopy(current_user)
+        identifier = user.get_id()
+        # update current user from request
+        user.update(request.form.copy())
+        logout_user() # logout user from flask-login
+        return (identifier, user)
 
-            def execute(identifier, user):
-                # insert new user
-                self.user_manager.delete(user)
-                self.user_manager.commit() # commit insertion
-                self.callback(tags.SUCCESS, identifier)
-                return self.reroute()
+    def execute(self, identifier, user):
+        # insert the updated new user
+        login_user(user) # login the copy
+        self.user_manager.update(user)
+        self.user_manager.commit() # commit insertion
+        self.callback(tags.SUCCESS, identifier)
+        return self.reroute()
 
-        else:
-            raise ValueError(f'invalid action \'{action}\'')
+class ResetBlock(PrepExecBlock):
 
-        self.prepare = prepare
-        self.execute = execute
+    def prepare(self):
+        identifier = self.user_manager.parse_reset(request.form.copy())
+        user = self.user_manager.select_user(identifier)
+        if not isinstance(user, BaseAuth):
+            raise exceptions.INVALID_CREDS
+        user.reset(request.form.copy())  # reset auth data
+        return (identifier, user)
 
-    def view(self):
-        if request.method == 'POST':
-            try:
-                aargs = self.prepare()
-            except exceptions.UserError as e:
-                return self.callback(tags.USER_ERROR, e)
-            except Exception as e:
-                # client error
-                self.client_error(e)
+    def execute(self, identifier, user):
+        self.user_manager.update(user)
+        self.user_manager.commit() # commit insertion
+        self.callback(tags.SUCCESS, identifier)
+        return self.reroute()
 
-            try:
-                return self.execute(*aargs)
-            except exceptions.UserError as e:
-                return self.callback(tags.USER_ERROR, e) # handle user error
-            except exceptions.IntegrityError as e:
-                self.user_manager.rollback() # rollback
-                return self.callback(tags.INTEGRITY_ERROR, e) # handle integrity error
-            except Exception as e:
-                # server error: unexpected exception
-                self.user_manager.rollback() # rollback
-                self.server_error(e)
+class RemoveBlock(PrepExecBlock):
 
-        return self.render()
+    def prepare(self):
+        # shallow copy a user (as opposed to deepcopy)
+        user = copy.deepcopy(current_user)
+        identifier = user.get_id()
+        # update current user from request
+        user.delete(request.form.copy())
+        logout_user()
+        return (identifier, user)
+
+    def execute(self, identifier, user):
+        # insert new user
+        self.user_manager.delete(user)
+        self.user_manager.commit() # commit insertion
+        self.callback(tags.SUCCESS, identifier)
+        return self.reroute()

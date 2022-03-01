@@ -16,7 +16,7 @@ class ContentManager(base.ContentManager):
 
     def insert(self, nd):
         if nd.get_id() in self.data:
-            raise exceptions.UserError(409, f'{self.content_class.__name__} exists.')
+            raise exceptions.UserError(f'{self.content_class.__name__} exists.', 409)
         self.data[nd.get_id()] = nd
 
     def update(self, nd):
