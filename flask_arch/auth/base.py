@@ -42,13 +42,13 @@ class Arch(BaseArch):
         rb = RegisterBlock(INSERT, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
-        rb = RenewBlock(UPDATE, user_manager, reroute_to=PROFILE, access_policy=login_required)
+        rb = RenewBlock(UPDATE, user_manager, reroute_to=PROFILE)
         self.add_route_block(rb)
 
         rb = ResetBlock(RESET, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
-        rb = RemoveBlock(DELETE, user_manager, reroute_to=LOGIN, access_policy=login_required)
+        rb = RemoveBlock(DELETE, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
         for rb in self.route_blocks.values():

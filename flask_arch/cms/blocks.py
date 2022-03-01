@@ -20,6 +20,9 @@ class PrepExecBlock(ManageBlock):
         ensure_callable(self.prepare, f'{self.__class__.__name__}.prepare')
         ensure_callable(self.execute, f'{self.__class__.__name__}.execute')
 
+    def initial(self):
+        return self.render()
+
     @property
     def default_methods(self):
         return ['GET', 'POST']
@@ -46,4 +49,4 @@ class PrepExecBlock(ManageBlock):
                 self.content_manager.rollback() # rollback
                 self.server_error(e)
 
-        return self.render()
+        return self.initial()

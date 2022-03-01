@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<form method="post">
+    <label>username</label></br>
+    <input name="username" required></br>
+    <label>password</label></br>
+    <input name="password" type="password" required></br>
+    <label>confirm password</label></br>
+    <input name="password_confirm" type="password" required></br>
+    <label>paid user (premium)</label>
+    <input type="checkbox" name="premium_user"></br>
+    <button type="submit">create account</button>
+</form>
+{% endblock %}

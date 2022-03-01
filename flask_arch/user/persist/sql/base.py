@@ -22,11 +22,3 @@ class User(BaseUser, SQLContent):
     @declared_attr
     def is_active(cls):
         return Column(Boolean(),nullable=False) #used to disable accounts
-
-    @declared_attr
-    def created_on(cls):
-        return Column(DateTime()) #date of user account creation
-
-    @declared_attr
-    def updated_on(cls):
-        return Column(DateTime()) #updated time

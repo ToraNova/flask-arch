@@ -13,8 +13,11 @@
 import json
 import datetime
 from sqlalchemy import create_engine, MetaData, inspect
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from flask_login import current_user
 
 from ... import base
 
@@ -35,7 +38,6 @@ def connect(dburi, base=SQLDeclarativeBase):
 
 
 class Content(base.Content):
-
     @property
     def __tablename__(self):
         return self.__contentname__
@@ -55,6 +57,38 @@ class Content(base.Content):
             if isinstance(v, datetime.datetime):
                 od[k] = v.isoformat()
         return od
+
+    @declared_attr
+    def created_on(cls):
+        return Column(DateTime()) # date of content creation
+
+    @declared_attr
+    def creator_id(cls):
+        return Column(
+            Integer,
+            ForeignKey('auth_user.id', ondelete='SET NULL'),
+            nullable=True
+        )
+
+    @declared_attr
+    def created_by(cls):
+        return relationship('AuthUser', foreign_keys=[cls.creator_id])
+
+    @declared_attr
+    def modified_on(cls):
+        return Column(DateTime()) # date of content update
+
+    @declared_attr
+    def modifier_id(cls):
+        return Column(
+            Integer,
+            ForeignKey('auth_user.id', ondelete='SET NULL'),
+            nullable=True
+        )
+
+    @declared_attr
+    def modified_by(cls):
+        return relationship('AuthUser', foreign_keys=[cls.modifier_id])
 
 
 class ContentManager(base.ContentManager):

@@ -1,6 +1,5 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
-from flask_login import current_user, login_required
 
 from flask_arch.cms import declarative_base
 from flask_arch.auth import AuthArch, PasswordAuth

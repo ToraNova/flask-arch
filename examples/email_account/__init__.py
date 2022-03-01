@@ -56,7 +56,7 @@ class MyPasswordAuth(PasswordAuth):
         self.set_auth_data(data['password_confirm'])
 
     @classmethod
-    def create(cls, data):
+    def register(cls, data):
         if data['password'] != data['password_confirm']:
             raise UserError('password do not match', 400)
         # jwt is obtained from email verify request

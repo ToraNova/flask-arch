@@ -139,7 +139,7 @@ def test_create(client):
 
     resp = client.post('/iud/register', data={'username':'newuser', 'password': 'newpass', 'password_confirm': 'newpass'}, follow_redirects=True)
     assert resp.status_code == 409
-    assert b'red">uc exists' in resp.data
+    assert b'red">AuthUser exists' in resp.data
 
     resp = client.post('/iud/login', data={'username': 'newuser', 'password': 'newpass'}, follow_redirects=True)
     assert len(resp.history) == 1

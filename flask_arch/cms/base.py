@@ -1,12 +1,9 @@
 # base object for the content management system
 # this system also handles user
+import datetime
 
 class Content:
     '''ancestor of all content managed by a ContentManager'''
-
-    # every content is either owned by no-one (None) or by someone
-    # by default, it is owned by no-one
-    owner_id = None
 
     def get_id(self):
         if hasattr(self, 'id'):
@@ -18,19 +15,19 @@ class Content:
     def create(cls, data):
         raise NotImplementedError(f'create callback on {cls.__name__} not implemented.')
 
-    def update(self,data):
+    def update(self, data):
         raise NotImplementedError(f'update callback on {self.__class__.__name__} not implemented.')
 
     def delete(self, data):
         raise NotImplementedError(f'delete callback on {self.__class__.__name__} not implemented.')
 
-    @classmethod
-    def populate_template_data(cls):
-        raise NotImplementedError(f'populate_template_data callback on {cls.__name__} not implemented.')
-
     @property
     def __contentname__(self):
         raise ValueError(f'__contentname__ is undefined on {self.__class__.__name__}.')
+
+    @classmethod
+    def parse_id(cls, data):
+        return data['id']
 
 
 class ContentManager:
@@ -46,10 +43,22 @@ class ContentManager:
     def create(self, data, creator=None):
         nc = self.content_class.create(data)
         if isinstance(creator, Content):
-            cid = creator.get_id()
-            if cid is not None:
-                nc.owner_id = cid
+            nc.creator_id = creator.get_id()
+        nc.created_on = datetime.datetime.now()
         return nc
+
+    def query(self, qargs):
+        cid = self.content_class.parse_id(qargs)
+        c = self.select_one(cid)
+        return c
+
+    def modify(self, qargs, data, modifier=None):
+        ec = self.query(qargs)
+        ec.update(data)
+        if isinstance(modifier, Content):
+            ec.modifier_id = modifier.get_id()
+        ec.modified_on = datetime.datetime.now()
+        return ec
 
     # get queries
     def select(self, query):
@@ -88,3 +97,7 @@ class ContentManager:
 
     def shutdown_session(self, exception):
         raise NotImplementedError(f'shutdown_session method on {self.__class__.__name__} not implemented.')
+
+    def parse_id(self, data):
+        cid = self.content_class.parse_id(data)
+        return cid

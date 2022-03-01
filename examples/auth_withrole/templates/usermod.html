@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<form method="post">
+    <label>user role</label></br>
+    <select name="role">
+        {% for role in target.generate_form_data() %}
+        {% if target.get_role() == role %}
+        <option value="{{role.name}}" selected>{{role.name}}</option>
+        {% else %}
+        <option value="{{role.name}}">{{role.name}}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    <button type="submit">update account</button>
+</form>
+{% endblock %}

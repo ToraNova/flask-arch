@@ -23,6 +23,10 @@ class RouteBlock:
     def default_methods(self):
         return ['GET']
 
+    @property
+    def default_access_policy(self):
+        return None
+
     def set_custom_callback(self, tag, f):
         ensure_callable(f, 'custom_callback')
         self.callbacks[tag] = f
@@ -58,8 +62,12 @@ class RouteBlock:
         if self.template is None:
             self.template = f'{self.keyword}.html'
 
+        if self.access_policy is None:
+            self.access_policy = self.default_access_policy
+
         if 'methods' not in self.options:
             self.options['methods'] = self.default_methods
+
 
     def render(self, **kwargs):
         try:

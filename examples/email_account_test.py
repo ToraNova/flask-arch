@@ -6,14 +6,21 @@ from email_account import create_app
 
 @pytest.fixture()
 def volatile_app():
-    app = create_app({'TESTING': True, 'PERSIST': False})
+    app = create_app({
+        'TESTING': True,
+        'PERSIST': False
+    })
     yield app
 
 @pytest.fixture()
 def persist_app():
     db_fd, db_file = tempfile.mkstemp()
     db_uri = 'sqlite:///%s' % db_file
-    app = create_app({'TESTING': True, 'DBURI': db_uri, 'PERSIST':True})
+    app = create_app({
+        'TESTING': True,
+        'DBURI': db_uri,
+        'PERSIST':True}
+    )
     yield app
     os.close(db_fd)
     os.unlink(db_file)
@@ -98,7 +105,7 @@ def test_1(volatile_client, persist_client):
         resp = c.post('/auth/register', data={'username':'newuser', 'password': 'newpass', 'password_confirm': 'newpass', 'jwt':token}, follow_redirects=True)
         assert resp.status_code == 409
         if volatile:
-            assert b'red">uc exists' in resp.data
+            assert b'red">AuthUser exists' in resp.data
         else:
             assert b'orange">integrity error' in resp.data
 

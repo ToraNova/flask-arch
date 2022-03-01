@@ -64,13 +64,15 @@ class PasswordAuth(BaseAuth):
         self.authd = generate_password_hash(supplied_auth_data, method=method, salt_length=saltlen)
 
     @classmethod
-    def create(cls, data):
+    def register(cls, data):
+        # user register themself
         if data['password'] != data['password_confirm']:
             raise exceptions.UserError('password do not match', 400)
         nu = cls(data['username'], data['password'])
         return nu
 
-    def update(self, data):
+    def renew(self, data):
+        # user renew own account
         if data.get('password_new'):
             if not self.auth(data['password_old']):
                 raise exceptions.UserError('invalid old password', 401)
@@ -79,7 +81,8 @@ class PasswordAuth(BaseAuth):
                 raise exceptions.UserError('new password do not match', 400)
             self.set_auth_data(data['password_confirm'])
 
-    def delete(self, data):
+    def remove(self, data):
+        # user remove themselves
         if not self.auth(data['password']):
             raise exceptions.UserError('invalid password', 401)
         # do something here

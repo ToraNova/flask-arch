@@ -12,10 +12,10 @@ class UserManager(BaseUserManager, ContentManager):
         if not issubclass(user_class, User):
             raise TypeError(f'{user_class} should be a subclass of {User}.')
 
-        class uc(auth_class, user_class):
+        class AuthUser(auth_class, user_class):
             pass
 
-        self.content_class = uc
+        self.content_class = AuthUser
         self.data = {}
 
     def select_user(self, userid):

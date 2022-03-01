@@ -12,10 +12,10 @@ class UserManager(BaseUserManager, ContentManager):
         if not issubclass(user_class, User):
             raise TypeError(f'{user_class} should be a subclass of {User}.')
 
-        class uc(auth_class, user_class, orm_base):
+        class AuthUser(auth_class, user_class, orm_base):
             pass
 
-        super().__init__(uc, database_uri, orm_base)
+        super().__init__(AuthUser, database_uri, orm_base)
 
     def select_user(self, userid):
         return self.content_class.query.filter(
