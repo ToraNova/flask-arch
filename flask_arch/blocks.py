@@ -116,6 +116,10 @@ class RouteBlock:
             # we need to append _arch_name as this is an implicit internal reroute
             return f'{self._arch_name}.{self.reroute_to}'
 
+    def custom_reroute(self, r):
+        self.reroute_external = True
+        self.reroute_to = r
+
     def _debug(self):
         if hasattr(self, '_arch_name'):
             print(self._arch_name)

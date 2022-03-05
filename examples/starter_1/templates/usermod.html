@@ -4,17 +4,19 @@
 {% block header %}{% endblock %}
 
 {% block content %}
+<h1>usermod</h1>
 <form method="post">
     <label>user role</label></br>
     <select name="role">
-        {% for role in target.get_own_roles() %}
-        {% if target.get_role() == role %}
+        {% for role in target.get_all_roles() %}
+        {% if target.role_id == role.id %}
         <option value="{{role.name}}" selected>{{role.name}}</option>
         {% else %}
         <option value="{{role.name}}">{{role.name}}</option>
         {% endif %}
         {% endfor %}
     </select>
+    {% include "csrf_token.html" %}
     <button type="submit">update account</button>
 </form>
 {% endblock %}

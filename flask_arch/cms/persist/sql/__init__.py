@@ -21,30 +21,27 @@ from flask_login import current_user
 
 from ... import base
 
-SQLDeclarativeBase = declarative_base()
-
-
-def make_session(engine, base=SQLDeclarativeBase):
+def make_session(engine, base):
     '''create a session and bind the Base query property to it'''
     sess =  scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
     base.query = sess.query_property()
     return sess
 
+class Connection:
 
-def connect(dburi, base=SQLDeclarativeBase):
-    '''easy function to connect to a database, returns a session'''
-    engine = create_engine(dburi)
-    return make_session(engine, base)
+    def __init__(self, db_uri, orm_base):
+        self.uri = db_uri
+        self.engine = create_engine(self.uri)
+        self.orm_base = orm_base
+        self.session = make_session(self.engine, self.orm_base)
 
+    def configure_teardown(self, app):
+
+        @app.teardown_appcontext
+        def teardown(exception=None):
+            self.session.remove()
 
 class Content(base.Content):
-    @property
-    def __tablename__(self):
-        return self.__contentname__
-
-    @property
-    def __table__(self):
-        raise ValueError(f'__table__ is not defined for {self.__class__.__name__}, please inherit a SQL declarative base.')
 
     def as_json(self):
         return json.dumps(self.as_dict())
@@ -93,14 +90,24 @@ class Content(base.Content):
 
 class ContentManager(base.ContentManager):
 
-    def __init__(self, content_class, database_uri, orm_base=SQLDeclarativeBase):
+    @property
+    def session(self):
+        return self.db_conn.session
+
+    @property
+    def database_uri(self):
+        return self.db_conn.uri
+
+    def __init__(self, content_class, db_conn):
         super().__init__(content_class)
         if not issubclass(content_class, Content):
             raise TypeError(f'{content_class} should be a subclass of {Content}.')
 
+        if not isinstance(db_conn, Connection):
+            raise TypeError(f'{db_conn} should be a subclass of {Connection}.')
+
+        self.db_conn = db_conn
         self.tablename = self.content_class.__tablename__
-        self.database_uri = database_uri
-        self.session = connect(database_uri, orm_base)
 
     # create table if not exist on dburi
     def create_table(self):
@@ -143,6 +150,3 @@ class ContentManager(base.ContentManager):
     def rollback(self):
         # rollback changes (encountered an exception)
         self.session.rollback()
-
-    def shutdown_session(self, exception):
-        self.session.remove()

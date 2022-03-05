@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<h1>transaction request: {{txname}}</h1>
+<form method="post">
+    <label>email</label></br>
+    <input name="email" required></br>
+    {% include "csrf_token.html" %}
+    <button type="submit">send</button>
+</form>
+{% endblock %}

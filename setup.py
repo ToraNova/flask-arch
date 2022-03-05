@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-_version = '0.0.4'
+_version = '0.0.6'
 
 setup(
     name='flask-arch',

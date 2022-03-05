@@ -1,8 +1,8 @@
 import json
 
-from ..cms import BaseContent
+from ..cms.base import Content
 
-class BaseRole(BaseContent):
+class Role(Content):
     __DELIM = ';'
 
     def __init__(self, name, privileges=[]):
@@ -29,16 +29,16 @@ class BaseRole(BaseContent):
         return self.name
 
     def __eq__(self, other):
-        if isinstance(other, BaseRole):
+        if isinstance(other, Role):
             return all([self.get_privileges() == other.get_privileges(), self.name == other.name])
         elif isinstance(other, str):
             return self.name == other
         else:
             return False
 
-no_role = BaseRole('no role', [])
+no_role = Role('no role', [])
 
-class BaseUser(BaseContent):
+class User(Content):
     '''
     ancestor of all authenticated users
     default attributes: is_authenticated, is_active, is_anonymous, userid (key), id, authd
@@ -78,20 +78,3 @@ class BaseUser(BaseContent):
 
     def remove(self, data):
         raise NotImplementedError(f'remove method on {self.__class__.__name__} not implemented')
-
-class BaseUserManager:
-
-    def select_user(self, userid):
-        raise NotImplementedError(f'select_user method on {self.__class__.__name__} not implemented.')
-
-    def parse_login(self, data):
-        id, ad = self.content_class.parse_auth_data(data)
-        return id, ad
-
-    def parse_reset(self, data):
-        id = self.content_class.parse_reset_data(data)
-        return id
-
-    def register(self, data):
-        nu = self.content_class.register(data)
-        return nu

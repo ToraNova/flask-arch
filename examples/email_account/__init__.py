@@ -3,11 +3,12 @@ import jwt
 from flask import Flask, request, render_template, redirect, url_for, flash, abort, current_app
 from flask_login import current_user, login_required
 
-from flask_arch.auth import AuthArch, PasswordAuth
+from flask_arch.builtins import AuthArch, PasswordAuth
 from flask_arch.user import ProcMemUserManager, SQLUserManager
 from flask_arch.exceptions import UserError
 from flask_arch.user import volatile, persist
 
+from flask_arch.cms import SQLDBConnection
 from flask_arch.cms import declarative_base, declared_attr, Column, String
 
 class MyVolatileUser(volatile.procmem.User):
@@ -74,11 +75,16 @@ def create_app(test_config=None):
 
     if isinstance(test_config, dict) and test_config.get('PERSIST'):
         # use a volatile dictionary to handle user, users are ephemeral
-        my_sql_declarative_base = declarative_base()
-        um = SQLUserManager(MyPasswordAuth, app.config['DBURI'], user_class=MyPersistUser)
+
+        my_declarative_base = declarative_base()
+        db_conn = SQLDBConnection(app.config['DBURI'], my_declarative_base)
+        db_conn.configure_teardown(app)
+
+        um = SQLUserManager(MyPasswordAuth, db_conn, user_class=MyPersistUser)
 
         if not um.table_exists():
             um.create_table()
+
     else:
         um = ProcMemUserManager(MyPasswordAuth, user_class=MyVolatileUser)
 

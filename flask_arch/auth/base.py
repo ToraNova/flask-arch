@@ -1,86 +1,57 @@
-# basic authentication (username, password)
-# no database systems, users defined by python scripts
+class Auth:
+    def auth(self, supplied_auth_data):
+        if self.authd is None:
+            return False
+        return self.check_auth_data(supplied_auth_data)
 
-from flask import abort
-from flask_login import LoginManager, login_required
-
-from .blocks import LoginBlock, LogoutBlock, RegisterBlock, RenewBlock, ResetBlock, RemoveBlock
-from .. import BaseArch, tags, callbacks
-from ..utils import ensure_type
-from ..blocks import RenderBlock
-from ..user import BaseUserManager
-
-# basic.Arch
-class Arch(BaseArch):
-
-    def __init__(self, user_manager, arch_name='auth', **kwargs):
+    @classmethod
+    def parse_auth_data(cls, data):
         '''
-        initialize the architecture for the flask_arch
-        templ is a dictionary that returns user specified templates to user on given routes
-        reroutes is a dictionary that reroutes the user after certain actions on given routes
+        this function should return an identifier (to create the user object) and a supplied_auth_data
+        the supplied_auth_data is used in the auth(self, supplied_auth_data) method
         '''
-        super().__init__(arch_name, **kwargs)
-        ensure_type(user_manager, BaseUserManager, 'user_manager')
+        raise NotImplementedError(f'parse_auth_data callback on {cls.__name__} not implemented.')
 
-        LOGIN   = 'login'
-        LOGOUT  = 'logout'
-        PROFILE = 'profile'
-        INSERT  = 'register'
-        UPDATE  = 'renew'
-        RESET  = 'reset'
-        DELETE  = 'remove'
+    def check_auth_data(self, supplied_auth_data):
+        '''
+        perform authentication on user on the supplied_auth_data
+        the supplied_auth_data is parsed by the parse_auth_data(cls, data) method
+        '''
+        raise NotImplementedError(f'check_auth_data callback on {self.__class__.__name__} not implemented.')
 
-        rb = RenderBlock(PROFILE, access_policy=login_required)
-        self.add_route_block(rb)
+    def set_auth_data(self, supplied_auth_data):
+        '''
+        sets up the authentication data (self.authd) from the supplied auth data
+        this should be called when update/create on user object (if authd is changed)
+        '''
+        raise NotImplementedError(f'set_auth_data callback on {self.__class__.__name__} not implemented.')
 
-        rb = LoginBlock(LOGIN, user_manager, reroute_to=PROFILE)
-        self.add_route_block(rb)
+    def parse_reset_data(cls, data):
+        '''
+        this is used for something like password resets
+        return an identifier
+        '''
+        raise NotImplementedError(f'parse_reset_data callback on {cls.__name__} not implemented.')
 
-        rb = LogoutBlock(LOGOUT, user_manager, reroute_to=LOGIN)
-        self.add_route_block(rb)
+    def reset(self, data):
+        '''
+        this is for the user to reset
+        '''
+        raise NotImplementedError(f'reset callback on {self.__cls__.__name__} not implemented.')
 
-        rb = RegisterBlock(INSERT, user_manager, reroute_to=LOGIN)
-        self.add_route_block(rb)
+class AuthManager:
 
-        rb = RenewBlock(UPDATE, user_manager, reroute_to=PROFILE)
-        self.add_route_block(rb)
+    def select_user(self, userid):
+        raise NotImplementedError(f'select_user method on {self.__class__.__name__} not implemented.')
 
-        rb = ResetBlock(RESET, user_manager, reroute_to=LOGIN)
-        self.add_route_block(rb)
+    def parse_login(self, data):
+        id, ad = self.content_class.parse_auth_data(data)
+        return id, ad
 
-        rb = RemoveBlock(DELETE, user_manager, reroute_to=LOGIN)
-        self.add_route_block(rb)
+    def parse_reset(self, data):
+        id = self.content_class.parse_reset_data(data)
+        return id
 
-        for rb in self.route_blocks.values():
-            rb.set_custom_callback(tags.SUCCESS, callbacks.default_success)
-            rb.set_custom_callback(tags.USER_ERROR, callbacks.default_user_error)
-            rb.set_custom_callback(tags.INTEGRITY_ERROR, callbacks.default_int_error)
-
-        self.login_manager = LoginManager()
-
-        @self.login_manager.unauthorized_handler
-        def unauthorized():
-            abort(401)
-
-        @self.login_manager.user_loader
-        def loader(userid):
-            user = user_manager.select_user(userid)
-            if user is None:
-                return None
-            user.is_authenticated = True
-            return user
-
-        def shutdown(exception):
-            user_manager.shutdown_session(exception)
-
-        self.shutdown = shutdown
-
-
-    def init_app(self, app):
-        super().init_app(app)
-
-        self.login_manager.init_app(app)
-
-        @app.teardown_appcontext
-        def shutdown_session(exception=None):
-            self.shutdown(exception)
+    def register(self, data):
+        nu = self.content_class.register(data)
+        return nu

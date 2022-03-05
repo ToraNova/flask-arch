@@ -33,6 +33,3 @@ class ContentManager(base.ContentManager):
 
     def rollback(self):
         pass
-
-    def shutdown_session(self, exception):
-        pass

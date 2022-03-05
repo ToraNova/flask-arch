@@ -50,7 +50,7 @@ class Arch:
 
             # user overrides reroute
             if valid_override(rb.keyword, self.custom_reroutes, str):
-                rb.reroute_to = self.custom_reroutes[rb.keyword]
+                rb.custom_reroute(self.custom_reroutes[rb.keyword])
 
             # user overrides reroute_kwargs
             if valid_override(rb.keyword, self.custom_reroutes_kwargs, dict):

@@ -12,10 +12,12 @@
 <a href="{{ url_for('auth.remove') }}">delete account</a>
 <a href="{{ url_for('auth.logout') }}">logout</a>
 
+<br>
 <a href="{{ url_for('treasure') }}">view treasure</a>
+<a href="{{ url_for('admin_only') }}">admin only stuff</a>
 
-{% if current_user.get_role()|string == 'admin' %}
+{% if current_user.get_role() == 'admin' %}
 <h2>admin stuff</h2>
-<a href="{{ url_for('auth.userlst') }}">list users</a>
+<a href="{{ url_for('userman.userlst') }}">list users</a>
 {% endif %}
 {% endblock %}

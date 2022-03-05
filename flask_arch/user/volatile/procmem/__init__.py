@@ -1,14 +1,13 @@
 from .base import User
 
-from ...base import BaseUserManager
-from ....auth.user import BaseAuth
+from ....auth.base import Auth, AuthManager
 from ....cms.volatile.procmem import ContentManager
 
-class UserManager(BaseUserManager, ContentManager):
+class UserManager(AuthManager, ContentManager):
 
     def __init__(self, auth_class, user_class=User):
-        if not issubclass(auth_class, BaseAuth):
-            raise TypeError(f'{auth_class} should be a subclass of {BaseAuth}.')
+        if not issubclass(auth_class, Auth):
+            raise TypeError(f'{auth_class} should be a subclass of {Auth}.')
         if not issubclass(user_class, User):
             raise TypeError(f'{user_class} should be a subclass of {User}.')
 

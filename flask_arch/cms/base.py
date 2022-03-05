@@ -21,10 +21,6 @@ class Content:
     def delete(self, data):
         raise NotImplementedError(f'delete callback on {self.__class__.__name__} not implemented.')
 
-    @property
-    def __contentname__(self):
-        raise ValueError(f'__contentname__ is undefined on {self.__class__.__name__}.')
-
     @classmethod
     def parse_id(cls, data):
         return data['id']
@@ -94,9 +90,6 @@ class ContentManager:
     def rollback(self):
         # rollback changes (encountered an exception)
         raise NotImplementedError(f'rollback method on {self.__class__.__name__} not implemented.')
-
-    def shutdown_session(self, exception):
-        raise NotImplementedError(f'shutdown_session method on {self.__class__.__name__} not implemented.')
 
     def parse_id(self, data):
         cid = self.content_class.parse_id(data)

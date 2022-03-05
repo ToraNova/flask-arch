@@ -3,27 +3,30 @@
 
 A project for modular architecture using [flask](https://flask.palletsprojects.com/en/2.0.x/)
 
-## Installation
-Recommend to do this in a virtual environment!
+## installation
+recommend to do this in a virtual environment!
 
-### Latest Version
+### latest version
 ```bash
 pip install git+git://github.com/toranova/flask-arch.git@master
 ```
-### pypi Release
+### pypi release
 ```bash
 pip install flask-arch
 ```
 
-## Testing the current build
+## testing the current build
 ```bash
 runtest.sh
 ```
 
-## Examples
-* Barebones
-    1. [Simple architecture](examples/arch_basic/__init__.py)
-* Authentication
-    1. [Minimal Login (No Database)](examples/auth_basic/__init__.py)
-    2. [With SQLAlchemy](examples/auth_database/__init__.py)
-    3. [Email Account](examples/email_account/__init__.py)
+## examples
+* barebones
+    1. [simple architecture](examples/arch_basic/__init__.py)
+* authentication
+    1. [minimal login (no database)](examples/auth_basic/__init__.py)
+    2. [with SQLAlchemy](examples/auth_database/__init__.py)
+    3. [email account](examples/email_account/__init__.py)
+    4. [user roles](examples/auth_withrole/__init__.py)
+* starters
+    1. [email login with roles](examples/starter_1/__init__.py)

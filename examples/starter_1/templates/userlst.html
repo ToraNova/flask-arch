@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<h1>users</h1>
+<table>
+    <tr>
+        <th>id</th>
+        <th>username</th>
+        <th>email</th>
+        <th>role</th>
+        <th>actions</th>
+    </tr>
+{% for u in data %}
+<tr>
+    <td>{{u.id}}</td>
+    <td>{{u.name}}</td>
+    <td>{{u.email}}</td>
+    <td>{{u.role}}</td>
+    <td><a href="{{ url_for('userman.usermod', id=u.id )}}">modify</a></td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

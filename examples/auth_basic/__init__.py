@@ -2,7 +2,7 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
 from flask_login import current_user, login_required
 
-from flask_arch.auth import AuthArch, PasswordAuth
+from flask_arch.builtins import AuthArch, PasswordAuth
 from flask_arch.user import ProcMemUserManager
 
 def create_app(test_config=None):

@@ -4,6 +4,7 @@
 {% block header %}{% endblock %}
 
 {% block content %}
+<h1>register</h1>
 <form method="post">
     <label>username</label></br>
     <input name="username" required></br>
@@ -11,12 +12,8 @@
     <input name="password" type="password" required></br>
     <label>confirm password</label></br>
     <input name="password_confirm" type="password" required></br>
-    <label>user role</label></br>
-    <select name="role">
-        {% for role in target_class.get_user_roles() %}
-        <option value="{{role.name}}">{{role.name}}</option>
-        {% endfor %}
-    </select>
+    {% include "jwt_input.html" %}
+    {% include "csrf_token.html" %}
     <button type="submit">create account</button>
 </form>
 {% endblock %}

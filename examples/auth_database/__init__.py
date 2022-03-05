@@ -1,9 +1,9 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
 
-from flask_arch.cms import declarative_base
-from flask_arch.auth import AuthArch, PasswordAuth
-from flask_arch.user import SQLUserManager
+from flask_arch.cms import declarative_base, SQLDBConnection
+from flask_arch.builtins import AuthArch, PasswordAuth
+from flask_arch.user import SQLUserManager, SQLRole
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -15,10 +15,13 @@ def create_app(test_config=None):
 
     # prevent pytest from erroring on metadata redefinition
     # this is also useful when u want to define your own userclass
-    my_sql_declarative_base = declarative_base()
+    my_declarative_base = declarative_base()
+
+    db_conn = SQLDBConnection(app.config['DBURI'], my_declarative_base)
+    db_conn.configure_teardown(app)
 
     # use a volatile dictionary to handle user, users are ephemeral
-    user_manager = SQLUserManager(PasswordAuth, app.config['DBURI'], orm_base=my_sql_declarative_base)
+    user_manager = SQLUserManager(PasswordAuth, db_conn)
 
     # for first time
     if not user_manager.table_exists():

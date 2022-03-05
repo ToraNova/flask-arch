@@ -4,7 +4,7 @@
 {% block header %}{% endblock %}
 
 {% block content %}
-<p>are you sure you want to remove user {{target.get_id()}}?</p>
+<p>are you sure you want to remove user '{{target.name}}'?</p>
 <form method="post">
     <button type="submit">delete account</button>
 </form>
