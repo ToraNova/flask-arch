@@ -1,0 +1,21 @@
+{% extends 'layouts/with_nav.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <form method="post">
+        <label>old password</label></br>
+        <input name="password_old" type="password" required></br>
+        <label>new password</label></br>
+        <input name="password_new" type="password" required></br>
+        <label>confirm password</label></br>
+        <input name="password_confirm" type="password" required></br>
+        {% include "includes/csrf_token.html" %}
+        <button type="submit">change password</button>
+    </form>
+
+</div>
+{% endblock %}

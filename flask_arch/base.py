@@ -3,6 +3,7 @@
 # author: toranova
 # mailto: chia_jason96@live.com
 
+import os
 from flask import Blueprint
 from .blocks import RouteBlock
 from .utils import ensure_type
@@ -44,6 +45,9 @@ class Arch:
             if rb.keyword in self.routes_disabled:
                 continue
 
+            if isinstance(self.custom_templates_dir, str):
+                rb.template = os.path.join(self.custom_templates_dir, rb.template)
+
             # user overrides template
             if valid_override(rb.keyword, self.custom_templates, str):
                 rb.template = self.custom_templates[rb.keyword]
@@ -70,7 +74,7 @@ class Arch:
         app.register_blueprint(self.bp)
         #self._debug()  # enable for debugging
 
-    def __init__(self, arch_name, custom_templates = {}, custom_reroutes = {}, custom_reroutes_kwargs = {}, custom_callbacks = {}, custom_url_prefix = None, routes_disabled=[]):
+    def __init__(self, arch_name, custom_templates_dir = None, custom_templates = {}, custom_reroutes = {}, custom_reroutes_kwargs = {}, custom_callbacks = {}, custom_url_prefix = None, routes_disabled=[]):
         '''
         arch_name - name of the architecture
         route_blocks - the route blocks to initialize and configure
@@ -79,6 +83,7 @@ class Arch:
         '''
 
         ensure_type(arch_name, str, 'arch_name')
+        ensure_type(custom_templates_dir, str, 'custom_templates_dir', allow_none=True)
         ensure_type(custom_templates, dict, 'custom_templates')
         ensure_type(custom_reroutes, dict, 'custom_reroutes')
         ensure_type(custom_reroutes_kwargs, dict, 'custom_reroutes_kwargs')
@@ -87,6 +92,7 @@ class Arch:
         ensure_type(routes_disabled, list, 'routes_disabled')
 
         self.name = arch_name
+        self.custom_templates_dir = custom_templates_dir
         self.custom_templates = custom_templates.copy()
         self.custom_reroutes = custom_reroutes.copy()
         self.custom_reroutes_kwargs = custom_reroutes_kwargs.copy()

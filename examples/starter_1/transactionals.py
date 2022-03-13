@@ -20,7 +20,7 @@ def bootstrap(app, um):
 
                 # simulate sending email on the browser itself
                 # (THIS IS JUST AN EXAMPLE, ITS NOT HOW VERIFICATION WORKS!!!)
-                return render_template('email/transaction.html', title='verify email', link=rediru)
+                return render_template('emails/transaction.html', title='verify email', link=rediru)
             except Exception as e:
                 print(e)
                 abort(500)
@@ -50,7 +50,7 @@ def bootstrap(app, um):
 
                 # simulate sending email on the browser itself
                 # (THIS IS JUST AN EXAMPLE, ITS NOT HOW VERIFICATION WORKS!!!)
-                return render_template('email/transaction.html', title='password reset', link=rediru)
+                return render_template('emails/transaction.html', title='password reset', link=rediru)
             except Exception as e:
                 print(e)
                 abort(500)

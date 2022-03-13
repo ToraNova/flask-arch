@@ -1,0 +1,23 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <h1>register</h1>
+    <form method="post">
+        <label>username</label></br>
+        <input name="username" required></br>
+        <label>password</label></br>
+        <input name="password" type="password" required></br>
+        <label>confirm password</label></br>
+        <input name="password_confirm" type="password" required></br>
+        {% include "includes/jwt_input.html" %}
+        {% include "includes/csrf_token.html" %}
+        <button type="submit">create account</button>
+    </form>
+
+</div>
+{% endblock %}

@@ -55,6 +55,7 @@ class MyAuth(PasswordAuth):
         if data['password'] != data['password_confirm']:
             raise UserError('password do not match', 400)
         # jwt is obtained from email verify request
+        print(data)
         jd = jwt.decode(data['jwt'], current_app.secret_key, algorithms=["HS256"])
         nu = cls(jd['email'], data['username'], None, data['password'])
         return nu

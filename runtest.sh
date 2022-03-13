@@ -1,5 +1,6 @@
 #!/bin/sh
 
+. bin/activate
 for t in $(ls examples/*_test.py); do
 	pytest $t -s;
 	[ ! "$?" -eq 0 ] && exit 1;

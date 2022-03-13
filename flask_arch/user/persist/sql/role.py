@@ -23,12 +23,12 @@ class Role(BaseRole, SQLContent):
 
     @declared_attr
     def id(cls):
-        return Column(Integer, primary_key = True)
+        return Column(Integer, primary_key=True)
 
     @declared_attr
     def name(cls):
-        return Column(String(50),unique=True,nullable=False)
+        return Column(String(50), unique=True, nullable=False)
 
     @declared_attr
     def privileges(cls):
-        return Column(String(1500),unique=True,nullable=False)
+        return Column(String(1500), unique=False, nullable=False)

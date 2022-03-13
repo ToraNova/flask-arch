@@ -5,6 +5,10 @@
 
 {% block content %}
 <div class="container">
-    <h1>Your dashboard!</h1>
+
+    <h1>welcome {{ current_user.name }}</h1>
+    <a href="{{ url_for('auth.renew') }}">renew account</a>
+    <a href="{{ url_for('auth.remove') }}">delete account</a>
+
 </div>
 {% endblock %}

@@ -43,6 +43,9 @@ class Connection:
 
 class Content(base.Content):
 
+    #_auc_name = 'flask_arch.user.persist.sql.UserManager.__init__.<locals>.AuthUser'
+    _auc_name = 'AuthUser'
+
     def as_json(self):
         return json.dumps(self.as_dict())
 
@@ -68,8 +71,8 @@ class Content(base.Content):
         )
 
     @declared_attr
-    def created_by(cls):
-        return relationship('AuthUser', foreign_keys=[cls.creator_id])
+    def creator(cls):
+        return relationship(cls._auc_name, foreign_keys=[cls.creator_id])
 
     @declared_attr
     def modified_on(cls):
@@ -84,8 +87,8 @@ class Content(base.Content):
         )
 
     @declared_attr
-    def modified_by(cls):
-        return relationship('AuthUser', foreign_keys=[cls.modifier_id])
+    def modifier(cls):
+        return relationship(cls._auc_name, foreign_keys=[cls.modifier_id])
 
 
 class ContentManager(base.ContentManager):

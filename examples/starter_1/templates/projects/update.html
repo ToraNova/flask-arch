@@ -1,0 +1,22 @@
+{% extends 'layouts/with_nav.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <form method='post'>
+
+        <label>project name</label></br>
+        <input name="name" required value="{{target.name}}"></br>
+
+        {% include "includes/csrf_token.html" %}<br>
+        <button type="submit">update project</button>
+
+    </form>
+</div>
+{% endblock %}

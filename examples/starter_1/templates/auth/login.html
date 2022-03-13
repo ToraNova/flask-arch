@@ -1,0 +1,29 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="text-center">
+
+        <h1>login</h1>
+        <form method="post">
+            <label>email</label></br>
+            <input name="email" required></br>
+            <label>password</label></br>
+            <input name="password" type="password" required></br>
+            {% include "includes/csrf_token.html" %}
+            </br>
+            <button type="submit">sign in</button>
+        </form>
+        <a href="{{ url_for('create_account') }}">signup here</a>
+        <a href="{{ url_for('reset_password') }}">forgot password</a>
+
+    </div>
+
+</div>
+
+{% endblock %}

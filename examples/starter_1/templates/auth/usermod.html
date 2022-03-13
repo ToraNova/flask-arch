@@ -1,0 +1,26 @@
+{% extends 'layouts/with_nav.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <h1>usermod</h1>
+    <form method="post">
+        <label>user role</label></br>
+        <select name="role_id">
+            {% for role in target.get_all_roles() %}
+            {% if target.role_id == role.id %}
+            <option value="{{role.id}}" selected>{{role.name}}</option>
+            {% else %}
+            <option value="{{role.id}}">{{role.name}}</option>
+            {% endif %}
+            {% endfor %}
+        </select>
+        {% include "includes/csrf_token.html" %}
+        <button type="submit">update account</button>
+    </form>
+
+</div>
+{% endblock %}

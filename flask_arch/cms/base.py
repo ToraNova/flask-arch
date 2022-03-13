@@ -4,12 +4,10 @@ import datetime
 
 class Content:
     '''ancestor of all content managed by a ContentManager'''
+    id = None
 
     def get_id(self):
-        if hasattr(self, 'id'):
-            return self.id
-        else:
-            return None
+        return self.id
 
     @classmethod
     def create(cls, data):
@@ -39,7 +37,7 @@ class ContentManager:
     def create(self, data, creator=None):
         nc = self.content_class.create(data)
         if isinstance(creator, Content):
-            nc.creator_id = creator.get_id()
+            nc.creator_id = creator.id
         nc.created_on = datetime.datetime.now()
         return nc
 
@@ -52,7 +50,7 @@ class ContentManager:
         ec = self.query(qargs)
         ec.update(data)
         if isinstance(modifier, Content):
-            ec.modifier_id = modifier.get_id()
+            ec.modifier_id = modifier.id
         ec.modified_on = datetime.datetime.now()
         return ec
 

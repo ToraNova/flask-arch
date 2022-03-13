@@ -5,6 +5,11 @@
 
 {% block content %}
 <div class="container">
-    <h1>Your dashboard!</h1>
+
+    <p>are you sure you want to remove user '{{target.name}}'?</p>
+    <form method="post">
+        <button type="submit">delete account</button>
+    </form>
+
 </div>
 {% endblock %}

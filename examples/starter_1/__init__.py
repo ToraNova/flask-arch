@@ -8,7 +8,7 @@ from flask_arch.cms import SQLContentManager, SQLDBConnection
 from flask_arch.exceptions import UserError
 
 from . import transactionals
-from .models import User, Role, my_declarative_base
+from .models import User, Role, Project, my_declarative_base
 from .auth import MyAuth
 
 def create_app(test_config=None):
@@ -28,6 +28,10 @@ def create_app(test_config=None):
         userm.create_table()
         u = userm.construct('admin@test.d', 'jason', 1, 'hunter2')
         userm.insert(u)
+
+        u = userm.construct('user@test.d', 'tifa', 2, 'asdasd')
+        userm.insert(u)
+
         userm.commit()
 
     rolem = SQLContentManager(Role, db_conn)
@@ -37,23 +41,32 @@ def create_app(test_config=None):
         r = rolem.construct('admin', [
             privileges.USERSEL, privileges.USERADD, privileges.USERMOD, privileges.USERDEL,
             'role.select', 'role.insert', 'role.update', 'role.delete',
+            'project.select', 'project.insert', 'project.update', 'project.delete',
         ])
         rolem.insert(r)
 
-        r = rolem.construct('normal', [])
+        r = rolem.construct('normal', ['user.select', 'role.select'])
         rolem.insert(r)
 
         rolem.commit()
 
+    projm = SQLContentManager(Project, db_conn)
+    if not projm.table_exists():
+        projm.create_table()
+
+
     # for login/auth
-    a = AuthArch(userm, custom_reroutes={'login': 'dashboard'})
+    a = AuthArch(userm, custom_templates_dir='auth', custom_reroutes={'login': 'dashboard'})
     a.init_app(app)
 
     # for managing users
-    a = UserManageArch(userm, routes_disabled=['useradd', 'userdel'])
+    a = UserManageArch(userm, custom_templates_dir='auth', routes_disabled=['useradd', 'userdel'])
     a.init_app(app)
 
-    a = CMSArch(rolem, 'role')
+    a = CMSArch(rolem, 'role', custom_templates_dir='roles')
+    a.init_app(app)
+
+    a = CMSArch(projm, 'project', custom_templates_dir='projects')
     a.init_app(app)
 
     csrf = CSRFProtect()

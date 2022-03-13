@@ -1,0 +1,33 @@
+{% extends 'layouts/with_nav.html' %}
+
+{% block title %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block stylesheets %}
+<style>
+pre {
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method='post'>
+        <label>role name</label></br>
+        <input name="name" required value="{{ target.name }}"></br>
+
+        <label>privileges</label><br>
+        <textarea name="privileges">{{ target.privileges }}</textarea>
+
+        {% include "includes/csrf_token.html" %}
+        <br>
+        <button type="submit">update role</button>
+
+    </form>
+</div>
+{% endblock %}

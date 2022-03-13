@@ -1,6 +1,0 @@
-<label>token</label></br>
-{% if 'token' in request.args %}
-    <input name="jwt" value="{{ request.args['token'] }}" required disabled></br>
-{% else %}
-    <input name="jwt" value="" required disabled></br>
-{% endif %}
