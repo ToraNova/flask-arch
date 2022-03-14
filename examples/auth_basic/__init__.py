@@ -16,7 +16,7 @@ def create_app(test_config=None):
     user_manager = ProcMemUserManager(PasswordAuth)
 
     # this user will persist because it is defined in the script
-    u = user_manager.construct('jason', 'hunter2')
+    u = user_manager.Content.create_default_with_form(username='jason', password='hunter2')
     user_manager.insert(u)
 
     # create arch and initialize the app with it

@@ -29,7 +29,7 @@ def test_admin_feature(client):
     assert resp.status_code == 200
     assert b'welcome jason, your role is admin' in resp.data
 
-    resp = client.post('/userman/useradd', data={'username': 'newuser', 'password':'newpass', 'password_confirm': 'newpass', 'role': 'no role'}, follow_redirects=True)
+    resp = client.post('/user/add', data={'username': 'newuser', 'password':'newpass', 'password_confirm': 'newpass', 'role': 'no role'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
     assert b'jason (admin)' in resp.data
@@ -38,7 +38,7 @@ def test_admin_feature(client):
     assert b'newuser (no role)' in resp.data
     assert b'green">useradd successful' in resp.data
 
-    resp = client.post('/userman/usermod?id=newuser', data={'role': 'admin'}, follow_redirects=True)
+    resp = client.post('/user/mod?id=newuser', data={'role': 'admin'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
     assert b'jason (admin)' in resp.data
@@ -47,7 +47,7 @@ def test_admin_feature(client):
     assert b'newuser (admin)' in resp.data
     assert b'green">usermod successful' in resp.data
 
-    resp = client.post('/userman/userdel?id=newuser', follow_redirects=True)
+    resp = client.post('/user/del?id=newuser', follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
     assert b'newuser (admin)' not in resp.data
@@ -68,23 +68,23 @@ def test_admin(client):
     assert resp.status_code == 200
     assert b'you can see this because you are an admin' in resp.data
 
-    resp = client.get("/userman/userlst")
+    resp = client.get("/user/list")
     assert resp.status_code == 200
     assert b'jason (admin)' in resp.data
     assert b'john (premium)' in resp.data
     assert b'james (no role)' in resp.data
 
-    resp = client.get("/userman/useradd")
+    resp = client.get("/user/add")
     assert resp.status_code == 200
     assert b'option value="admin' in resp.data
     assert b'option value="premium' in resp.data
     assert b'option value="no role' in resp.data
 
-    resp = client.get("/userman/usermod?id=john")
+    resp = client.get("/user/mod?id=john")
     assert resp.status_code == 200
     assert b'"premium" selected>' in resp.data
 
-    resp = client.get("/userman/userdel?id=james")
+    resp = client.get("/user/del?id=james")
     assert resp.status_code == 200
     assert b'are you sure you want to remove user james?' in resp.data
 
@@ -102,16 +102,16 @@ def test_premium(client):
     resp = client.get("/admin_only")
     assert resp.status_code == 403
 
-    resp = client.get("/userman/userlst")
+    resp = client.get("/user/list")
     assert resp.status_code == 403
 
-    resp = client.get("/userman/useradd")
+    resp = client.get("/user/add")
     assert resp.status_code == 403
 
-    resp = client.get("/userman/usermod")
+    resp = client.get("/user/mod")
     assert resp.status_code == 403
 
-    resp = client.get("/userman/userdel")
+    resp = client.get("/user/del")
     assert resp.status_code == 403
 
 
@@ -128,14 +128,14 @@ def test_norole(client):
     resp = client.get("/admin_only")
     assert resp.status_code == 403
 
-    resp = client.get("/userman/userlst")
+    resp = client.get("/user/list")
     assert resp.status_code == 403
 
-    resp = client.get("/userman/useradd")
+    resp = client.get("/user/add")
     assert resp.status_code == 403
 
-    resp = client.get("/userman/usermod")
+    resp = client.get("/user/mod")
     assert resp.status_code == 403
 
-    resp = client.get("/userman/userdel")
+    resp = client.get("/user/del")
     assert resp.status_code == 403

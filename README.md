@@ -29,4 +29,4 @@ runtest.sh
     3. [email account](examples/email_account/__init__.py)
     4. [user roles](examples/auth_withrole/__init__.py)
 * starters
-    1. [email login with roles](examples/starter_1/__init__.py)
+    1. [email login with roles + upload/download](examples/starter_1/__init__.py)

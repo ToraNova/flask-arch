@@ -1,9 +1,11 @@
 # a simple flask-arch example
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
 
-from flask_arch.cms import declarative_base, SQLDBConnection
+from flask_arch.cms import SQLDBConnection
 from flask_arch.builtins import AuthArch, PasswordAuth
 from flask_arch.user import SQLUserManager, SQLRole
+
+from sqlalchemy.ext.declarative import declarative_base
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -24,11 +26,11 @@ def create_app(test_config=None):
     user_manager = SQLUserManager(PasswordAuth, db_conn)
 
     # for first time
-    if not user_manager.table_exists():
+    if not user_manager.table_exists:
         # create table
         user_manager.create_table()
         # first time
-        u = user_manager.construct('jason', 'hunter2')
+        u = user_manager.Content.create_default_with_form(username='jason', password='hunter2')
         user_manager.insert(u)
         user_manager.commit()
 

@@ -1,7 +1,6 @@
 {% extends 'layouts/with_nav.html' %}
 
 {% block title %}{% endblock %}
-{% block header %}{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -21,7 +20,7 @@
             <td>{{u.name}}</td>
             <td>{{u.email}}</td>
             <td>{{u.role}}</td>
-            <td><a href="{{ url_for('userman.usermod', id=u.id )}}">modify</a></td>
+            <td><a href="{{ url_for('user.mod', id=u.id )}}">modify</a></td>
         </tr>
         {% endfor %}
     </table>

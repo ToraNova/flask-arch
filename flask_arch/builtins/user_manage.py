@@ -1,35 +1,35 @@
-from . import privileges
 from .. import base, tags, callbacks
 from ..utils import ensure_type
 from ..cms.base import ContentManager
 from ..cms.blocks import ContentLstBlock, ContentAddBlock, ContentModBlock, ContentDelBlock
-from ..user.access_policies import privilege_required
+from ..user.access_policies import privilege_required, Privileges
 
 class Arch(base.Arch):
 
-    def __init__(self, user_manager, arch_name='userman', **kwargs):
+    def __init__(self, user_manager, arch_name='user', **kwargs):
         super().__init__(arch_name, **kwargs)
         ensure_type(user_manager, ContentManager, 'user_manager')
 
-        USERLST   = 'userlst'
-        USERADD   = 'useradd'
-        USERMOD   = 'usermod'
-        USERDEL   = 'userdel'
+        self.privileges = Privileges(arch_name)
+        self.privileges.add('view')
+        self.privileges.add('add')
+        self.privileges.add('mod')
+        self.privileges.add('del')
 
-        rb = ContentLstBlock(USERLST, user_manager,
-                access_policy=privilege_required(privileges.USERSEL))
+        rb = ContentLstBlock('list', user_manager,
+                access_policy=privilege_required(self.privileges.VIEW))
         self.add_route_block(rb)
 
-        rb = ContentAddBlock(USERADD, user_manager, reroute_to=USERLST,
-                access_policy=privilege_required(privileges.USERADD))
+        rb = ContentAddBlock('add', user_manager, reroute_to='list',
+                access_policy=privilege_required(self.privileges.ADD))
         self.add_route_block(rb)
 
-        rb = ContentModBlock(USERMOD, user_manager, reroute_to=USERLST,
-                access_policy=privilege_required(privileges.USERMOD))
+        rb = ContentModBlock('mod', user_manager, reroute_to='list',
+                access_policy=privilege_required(self.privileges.MOD))
         self.add_route_block(rb)
 
-        rb = ContentDelBlock(USERDEL, user_manager, reroute_to=USERLST,
-                access_policy=privilege_required(privileges.USERDEL))
+        rb = ContentDelBlock('del', user_manager, reroute_to='list',
+                access_policy=privilege_required(self.privileges.DEL))
         self.add_route_block(rb)
 
         for rb in self.route_blocks.values():

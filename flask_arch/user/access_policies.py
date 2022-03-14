@@ -4,6 +4,16 @@ from functools import wraps
 
 from .base import Role
 
+def make_privilege(basename, action):
+    return f'{basename}.{action}'
+
+class Privileges:
+    def __init__(self, basename):
+        self.basename = basename
+
+    def add(self, action):
+        setattr(self, action.upper(), make_privilege(self.basename, action))
+
 def privilege_required(privilege):
     def outer_dec(fn):
         @wraps(fn)

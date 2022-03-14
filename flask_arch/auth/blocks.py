@@ -32,34 +32,36 @@ class PrepExecBlock(ContentPrepExecBlock):
 
 class LoginBlock(PrepExecBlock):
 
-    def prepare(self):
-        identifier, auth_data = self.auth_manager.parse_login(request.form.copy())
-        user = self.auth_manager.select_user(identifier)
-        if not isinstance(user, Auth):
+    def prepare(self, rp):
+        u, d = self.auth_manager.prepare_login(rp)
+
+        if not isinstance(u, Auth):
             raise exceptions.INVALID_CREDS
 
-        if not user.auth(auth_data):
+        if not u.auth(d):
             raise exceptions.INVALID_CREDS
 
-        return (identifier, user)
+        return (rp, u)
 
-    def execute(self, identifier, user):
+    def execute(self, rp, u):
         # auth success
-        login_user(user)
-        self.callback(tags.SUCCESS, identifier)
+        login_user(u)
+        self.callback(tags.SUCCESS, u.get_id())
         return self.reroute()
 
 class RegisterBlock(PrepExecBlock):
 
-    def prepare(self):
-        user = self.auth_manager.register(request.form.copy())
-        return (user,)
+    def prepare(self, rp):
+        u = self.auth_manager.Content(rp, None)
+        u.before_insert(rp, u)
+        return (rp, u)
 
-    def execute(self, user):
+    def execute(self, rp, u):
         # insert new user
-        identifier = self.auth_manager.insert(user)
+        identifier = self.auth_manager.insert(u)
         self.auth_manager.commit() # commit insertion
-        self.callback(tags.SUCCESS, identifier)
+        u.after_insert(rp, u)
+        self.callback(tags.SUCCESS, u.get_id())
         return self.reroute()
 
 class RenewBlock(PrepExecBlock):
@@ -68,37 +70,38 @@ class RenewBlock(PrepExecBlock):
     def default_access_policy(self):
         return login_required
 
-    def prepare(self):
+    def prepare(self, rp):
         # shallow copy a user (as opposed to deepcopy)
-        user = copy.deepcopy(current_user)
-        identifier = user.get_id()
+        u = copy.deepcopy(current_user)
         # update current user from request
-        user.renew(request.form.copy())
+        u.modify(rp, u)
+        u.before_update(rp, u)
         logout_user() # logout user from flask-login
-        return (identifier, user)
+        return (rp, u)
 
-    def execute(self, identifier, user):
+    def execute(self, rp, u):
         # insert the updated new user
-        login_user(user) # login the copy
-        self.auth_manager.update(user)
+        login_user(u) # login the copy
+        self.auth_manager.update(u)
         self.auth_manager.commit() # commit insertion
-        self.callback(tags.SUCCESS, identifier)
+        u.after_update(rp, u)
+        self.callback(tags.SUCCESS, u.get_id())
         return self.reroute()
 
 class ResetBlock(PrepExecBlock):
 
-    def prepare(self):
-        identifier = self.auth_manager.parse_reset(request.form.copy())
-        user = self.auth_manager.select_user(identifier)
-        if not isinstance(user, Auth):
+    def prepare(self, rp):
+        u = self.auth_manager.prepare_reset(rp)
+        if not isinstance(u, Auth):
             raise exceptions.INVALID_CREDS
-        user.reset(request.form.copy())  # reset auth data
-        return (identifier, user)
+        u.reset(rp)  # reset auth data
+        return (rp, u)
 
-    def execute(self, identifier, user):
-        self.auth_manager.update(user)
+    def execute(self, rp, u):
+        self.auth_manager.update(u)
         self.auth_manager.commit() # commit insertion
-        self.callback(tags.SUCCESS, identifier)
+        u.after_update(rp, u)
+        self.callback(tags.SUCCESS, u.get_id())
         return self.reroute()
 
 class RemoveBlock(PrepExecBlock):
@@ -107,18 +110,18 @@ class RemoveBlock(PrepExecBlock):
     def default_access_policy(self):
         return login_required
 
-    def prepare(self):
+    def prepare(self, rp):
         # shallow copy a user (as opposed to deepcopy)
-        user = copy.deepcopy(current_user)
-        identifier = user.get_id()
+        u = copy.deepcopy(current_user)
         # update current user from request
-        user.remove(request.form.copy())
+        u.deinit(rp, u)
         logout_user()
-        return (identifier, user)
+        return (rp, u)
 
-    def execute(self, identifier, user):
+    def execute(self, rp, u):
         # insert new user
-        self.auth_manager.delete(user)
+        self.auth_manager.delete(u)
         self.auth_manager.commit() # commit insertion
-        self.callback(tags.SUCCESS, identifier)
+        u.after_delete(rp, u)
+        self.callback(tags.SUCCESS, u.get_id())
         return self.reroute()

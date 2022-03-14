@@ -14,7 +14,7 @@ class UserManager(AuthManager, ContentManager):
         class AuthUser(auth_class, user_class):
             pass
 
-        self.content_class = AuthUser
+        super().__init__(AuthUser)
         self.data = {}
 
     def select_user(self, userid):

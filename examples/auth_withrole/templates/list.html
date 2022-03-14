@@ -7,9 +7,9 @@
 <h1>users</h1>
 <ol>
 {% for u in data %}
-<li><p>{{u.get_id()}} ({{u.get_role()}}) <a href="{{ url_for('userman.usermod', id=u.get_id()) }}">modify</a> <a href="{{ url_for('userman.userdel', id=u.get_id() )}}">delete</a></p></li>
+<li><p>{{u.get_id()}} ({{u.get_role()}}) <a href="{{ url_for('user.mod', id=u.get_id()) }}">modify</a> <a href="{{ url_for('user.del', id=u.get_id() )}}">delete</a></p></li>
 {% endfor %}
 </ol>
-<a href="{{ url_for('userman.useradd') }}">add new user</a>
+<a href="{{ url_for('user.add') }}">add new user</a>
 <a href="{{ url_for('auth.profile') }}">back to my profile</a>
 {% endblock %}

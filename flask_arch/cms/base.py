@@ -1,58 +1,86 @@
 # base object for the content management system
 # this system also handles user
 import datetime
+from ..utils import RequestParser
 
 class Content:
     '''ancestor of all content managed by a ContentManager'''
+
     id = None
 
-    def get_id(self):
-        return self.id
+    def __init__(self, rp, actor):
+        # user must define the creation behavior
+        raise NotImplementedError(f'__init__(self, rp, actor) on {self.__class__.__name__} not implemented.')
+
+    def before_insert(self, rp, actor):
+        # called before commit
+        # set creator_id
+        if isinstance(actor, Content):
+            self.creator_id = actor.id
+        self.created_on = datetime.datetime.now()
+
+    def after_insert(self, rp, actor):
+        # called after commit
+        pass
+
+    def modify(self, rp, actor):
+        # user must define the modification behavior
+        raise NotImplementedError(f'update(self, rp, actor) on {self.__class__.__name__} not implemented.')
+
+    def before_update(self, rp, actor):
+        # called before commit
+        if isinstance(actor, Content):
+            self.modifier_id = actor.id
+        self.updated_on = datetime.datetime.now()
+
+    def after_update(self, rp, actor):
+        # called after commit
+        pass
+
+    def deinit(self, rp, actor):
+        # deinitialization behavior
+        pass
+
+    def before_delete(self, rp, actor):
+        # called before delete
+        pass
+
+    def after_delete(self, rp, actor):
+        # called after commit
+        pass
 
     @classmethod
-    def create(cls, data):
-        raise NotImplementedError(f'create callback on {cls.__name__} not implemented.')
-
-    def update(self, data):
-        raise NotImplementedError(f'update callback on {self.__class__.__name__} not implemented.')
-
-    def delete(self, data):
-        raise NotImplementedError(f'delete callback on {self.__class__.__name__} not implemented.')
+    def parse_id(cls, rp):
+        return rp.args['id']
 
     @classmethod
-    def parse_id(cls, data):
-        return data['id']
+    def parse_filename(cls, rp):
+        return rp.args['filename']
 
+    @classmethod
+    def create_default_with_form(cls, **kwargs):
+        from .default import DEFAULT
+        defo = cls._create_with_form(DEFAULT, **kwargs)
+        return defo
+
+    @classmethod
+    def _create_with_form(cls, actor, **kwargs):
+        rp = RequestParser()
+        rp.form = kwargs.copy()
+        c = cls(rp, actor)
+        return c
 
 class ContentManager:
 
-    def __init__(self, content_class):
-        if not issubclass(content_class, Content):
-            raise TypeError(f'{content_class} should be a subclass of {Content}.')
-        self.content_class = content_class
+    def __init__(self, ContentClass):
+        if not issubclass(ContentClass, Content):
+            raise TypeError(f'{ContentClass} should be a subclass of {Content}.')
+        self.Content = ContentClass
 
-    def construct(self, *args, **kwargs):
-        return self.content_class(*args, **kwargs)
-
-    def create(self, data, creator=None):
-        nc = self.content_class.create(data)
-        if isinstance(creator, Content):
-            nc.creator_id = creator.id
-        nc.created_on = datetime.datetime.now()
-        return nc
-
-    def query(self, qargs):
-        cid = self.content_class.parse_id(qargs)
+    def query(self, rp):
+        cid = self.Content.parse_id(rp)
         c = self.select_one(cid)
         return c
-
-    def modify(self, qargs, data, modifier=None):
-        ec = self.query(qargs)
-        ec.update(data)
-        if isinstance(modifier, Content):
-            ec.modifier_id = modifier.id
-        ec.modified_on = datetime.datetime.now()
-        return ec
 
     # get queries
     def select(self, query):
@@ -88,7 +116,3 @@ class ContentManager:
     def rollback(self):
         # rollback changes (encountered an exception)
         raise NotImplementedError(f'rollback method on {self.__class__.__name__} not implemented.')
-
-    def parse_id(self, data):
-        cid = self.content_class.parse_id(data)
-        return cid

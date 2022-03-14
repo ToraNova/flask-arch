@@ -3,13 +3,15 @@ import json
 from ..cms.base import Content
 
 class Role(Content):
-    __DELIM = ';'
 
-    def __init__(self, name, privileges=[]):
-        self.name = name
+    def __init__(self, rp, actor=None):
+        self.name = rp.form['name']
         self.privileges = '{}'
-        for p in privileges:
-            self.set_privilege(p, True)
+
+    def set_list_privileges(self, liststr):
+        self.privileges = '{}'
+        for priv in liststr:
+            self.set_privilege(priv, True)
 
     def set_privilege(self, privilege, set_1=True):
         pd = self.get_privileges()
@@ -36,7 +38,7 @@ class Role(Content):
         else:
             return False
 
-no_role = Role('no role', [])
+no_role = Role._create_with_form(None, name='no role')
 
 class User(Content):
     '''
@@ -46,20 +48,14 @@ class User(Content):
     is_anonymous = False
     is_authenticated = False
 
-    __contentname__ = "auth_user"
-
-    # user identifier key. (e.g., if set to id, means user.id will identify the user)
+    # by default, name is used to identify a user easily (i.e., username)
     userid = 'id'
 
-    def __init__(self, identifier):
-        setattr(self, self.userid, identifier)
+    def __init__(self, rp, actor):
         self.is_active = True
 
-    def get_id(self):
-        if self.is_anonymous:
-            return None
-        else:
-            return getattr(self, self.userid)
+    def modify(self, rp, actor):
+        pass
 
     def get_role(self):
         if hasattr(self, 'role') and self.role is not None:
@@ -67,14 +63,8 @@ class User(Content):
         else:
             return no_role
 
-    # these are different from create, update and delete, in that they are done by the users themselves
-    # they are 'self' methods, as opposed to someone else creating/updating and deleting
-    @classmethod
-    def register(cls, data):
-        raise NotImplementedError(f'register method on {cls.__name__} not implemented')
-
-    def renew(self, data):
-        raise NotImplementedError(f'renew method on {self.__class__.__name__} not implemented')
-
-    def remove(self, data):
-        raise NotImplementedError(f'remove method on {self.__class__.__name__} not implemented')
+    def get_id(self):
+        if self.is_anonymous:
+            return None
+        else:
+            return getattr(self, self.userid)

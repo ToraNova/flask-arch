@@ -13,10 +13,13 @@
 import json
 import datetime
 from sqlalchemy import create_engine, MetaData, inspect
-from sqlalchemy.orm import scoped_session, sessionmaker, relationship
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.declarative import declared_attr
+# import copy pasta
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
+
 from flask_login import current_user
 
 from ... import base
@@ -46,6 +49,9 @@ class Content(base.Content):
     #_auc_name = 'flask_arch.user.persist.sql.UserManager.__init__.<locals>.AuthUser'
     _auc_name = 'AuthUser'
 
+    def __init__(self, rp, actor):
+        pass
+
     def as_json(self):
         return json.dumps(self.as_dict())
 
@@ -60,7 +66,11 @@ class Content(base.Content):
 
     @declared_attr
     def created_on(cls):
-        return Column(DateTime()) # date of content creation
+        return Column(DateTime()) # date of content insertion
+
+    @declared_attr
+    def updated_on(cls):
+        return Column(DateTime()) # date of content update
 
     @declared_attr
     def creator_id(cls):
@@ -73,10 +83,6 @@ class Content(base.Content):
     @declared_attr
     def creator(cls):
         return relationship(cls._auc_name, foreign_keys=[cls.creator_id])
-
-    @declared_attr
-    def modified_on(cls):
-        return Column(DateTime()) # date of content update
 
     @declared_attr
     def modifier_id(cls):
@@ -101,36 +107,38 @@ class ContentManager(base.ContentManager):
     def database_uri(self):
         return self.db_conn.uri
 
-    def __init__(self, content_class, db_conn):
-        super().__init__(content_class)
-        if not issubclass(content_class, Content):
-            raise TypeError(f'{content_class} should be a subclass of {Content}.')
+    def __init__(self, ContentClass, db_conn):
+        super().__init__(ContentClass)
+        if not issubclass(ContentClass, Content):
+            raise TypeError(f'{ContentClass} should be a subclass of {Content}.')
 
         if not isinstance(db_conn, Connection):
             raise TypeError(f'{db_conn} should be a subclass of {Connection}.')
 
         self.db_conn = db_conn
-        self.tablename = self.content_class.__tablename__
+        self.tablename = self.Content.__tablename__
 
     # create table if not exist on dburi
     def create_table(self):
-        engine = create_engine(self.database_uri)
-        self.content_class.__table__.create(engine, checkfirst=True)
-        engine.dispose() #house keeping
+        if not self.table_exists:
+            engine = create_engine(self.database_uri)
+            self.Content.__table__.create(engine, checkfirst=True)
+            engine.dispose() #house keeping
 
     # check if table exists in dburi
+    @property
     def table_exists(self):
         engine = create_engine(self.database_uri)
         ins = inspect(engine)
-        res = self.content_class.__tablename__ in ins.get_table_names()
+        res = self.Content.__tablename__ in ins.get_table_names()
         engine.dispose()
         return res
 
     def select_all(self):
-        return self.content_class.query.all()
+        return self.Content.query.all()
 
     def select_one(self, id):
-        return self.content_class.query.filter(self.content_class.id == id).first()
+        return self.Content.query.filter(self.Content.id == id).first()
 
     # insert/update/delete queries
     def insert(self, nd):

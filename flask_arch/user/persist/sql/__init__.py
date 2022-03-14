@@ -19,6 +19,6 @@ class UserManager(AuthManager, ContentManager):
         super().__init__(AuthUser, db_conn)
 
     def select_user(self, userid):
-        return self.content_class.query.filter(
-            getattr(self.content_class, self.content_class.userid) == userid
+        return self.Content.query.filter(
+            getattr(self.Content, self.Content.userid) == userid
         ).first()

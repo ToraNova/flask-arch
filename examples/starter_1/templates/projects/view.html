@@ -16,17 +16,19 @@ pre {
 
 {% block content %}
 <div class="container">
-    <form method='post'>
-        <label>role name</label></br>
-        <input name="name" required value="{{ target.name }}"></br>
 
-        <label>privileges</label><br>
-        <textarea name="privileges">{{ target.privileges }}</textarea>
+    <h1>{{ target.name }}</h1>
+    <p>owner: {{target.creator.name }}</p>
+    <p>created on: {{target.created_on }}</p>
 
-        {% include "includes/csrf_token.html" %}
-        <br>
-        <button type="submit">update role</button>
+    <h2>files</h2>
+    <ul>
+        {% for f in target.list_files() %}
+        <a href="{{ url_for('project.file', id=target.id, filename=f) }}">{{f}}</a></br>
+        {% endfor %}
+    </ul>
 
-    </form>
+    <a href="{{ url_for('project.list' ) }}">back to listing</a>
+
 </div>
 {% endblock %}

@@ -2,7 +2,7 @@ from .utils import ensure_type, ensure_callable
 
 import traceback
 from jinja2.exceptions import TemplateNotFound
-from flask import redirect, url_for, flash, render_template, request, abort, current_app
+from flask import redirect, url_for, flash, render_template, request, abort, current_app, make_response
 
 # late-binding vs. early binding
 # https://stackoverflow.com/questions/3431676/creating-functions-in-a-loop
@@ -73,7 +73,7 @@ class RouteBlock:
         try:
             return render_template(self.template, **kwargs)
         except TemplateNotFound:
-            return f'template for {self.keyword}: \'{self.template}\' not found.', 500
+            self.abort(make_response(f'template for {self.keyword}: \'{self.template}\' not found.', 500))
 
     def reroute(self, **kwargs):
         # reroute action

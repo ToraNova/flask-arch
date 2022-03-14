@@ -20,3 +20,15 @@ def parse_boolean(reqform, attr):
         return formval > 0
     else:
         return False
+
+class RequestParser:
+    def __init__(self, flask_request=None, actor=None):
+        if flask_request is None:
+            pass
+        else:
+            self.args = flask_request.args.copy()
+            self.form = flask_request.form.copy()
+            self.files = flask_request.files.copy()
+            self.post_method = flask_request.method == 'POST'
+
+        self.actor = actor

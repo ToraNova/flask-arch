@@ -1,7 +1,10 @@
 from .base import User as BaseUser
 from ...base import Role as BaseRole
 from ....cms import SQLContent
-from ....cms import declared_attr, Column, Integer, String, Boolean, DateTime, ForeignKey, relationship
+
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
 
 class User(BaseUser):
 

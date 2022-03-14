@@ -3,10 +3,12 @@
 from sqlalchemy.exc import IntegrityError
 
 class UserError(Exception):
-    def __init__(self, msg, code, *args):
+    def __init__(self, code, msg, *args):
         super().__init__(msg)
-        self.msg = msg
         self.code = code
+        self.msg = msg
         self.args = args
 
-INVALID_CREDS = UserError('invalid credentials', 401)
+INVALID_CREDS = UserError(401, 'invalid credentials')
+INVALID_FNAME = UserError(400, 'invalid file name')
+INVALID_FSIZE = UserError(400, 'invalid file size')

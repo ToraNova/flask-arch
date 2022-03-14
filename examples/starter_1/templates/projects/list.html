@@ -1,7 +1,6 @@
 {% extends 'layouts/with_nav.html' %}
 
 {% block title %}{% endblock %}
-{% block header %}{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -32,10 +31,10 @@ pre {
         {% for u in data %}
         <tr>
             <td>{{u.id}}</td>
-            <td>{{u.name}}</td>
+            <td><a class="btn btn-link" href="{{ url_for('project.view', id=u.id) }}">{{u.name}}</a></td>
             <td>{{u.creator.name}}</td>
             <td>{{u.created_on}}</td>
-            <td>{{u.modified_on}}</td>
+            <td>{{u.updated_on}}</td>
 
             <td><a class="btn btn-link" href="{{ url_for('project.update', id=u.id )}}">modify</a></td>
 

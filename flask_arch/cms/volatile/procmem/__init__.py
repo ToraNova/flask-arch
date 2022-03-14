@@ -3,8 +3,8 @@ from .... import exceptions
 
 class ContentManager(base.ContentManager):
 
-    def __init__(self, content_class):
-        super().__init__(content_class)
+    def __init__(self, Content):
+        super().__init__(Content)
         self.data = {}
 
     def select_all(self):
@@ -15,18 +15,18 @@ class ContentManager(base.ContentManager):
             return self.data[id]
 
     def insert(self, nd):
-        if nd.get_id() in self.data:
-            raise exceptions.UserError(f'{self.content_class.__name__} exists.', 409)
-        self.data[nd.get_id()] = nd
+        if nd.id in self.data:
+            raise exceptions.UserError(409, f'{self.Content.__name__} exists.')
+        self.data[nd.id] = nd
 
     def update(self, nd):
-        if nd.get_id() in self.data:
-            self.data[nd.get_id()] = nd
-            return self.data[nd.get_id()]
+        if nd.id in self.data:
+            self.data[nd.id] = nd
+            return self.data[nd.id]
 
     def delete(self, nd):
-        if nd.get_id() in self.data:
-            del self.data[nd.get_id()]
+        if nd.id in self.data:
+            del self.data[nd.id]
 
     def commit(self):
         pass

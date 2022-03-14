@@ -18,6 +18,6 @@
 
 {% if current_user.get_role() == 'admin' %}
 <h2>admin stuff</h2>
-<a href="{{ url_for('userman.userlst') }}">list users</a>
+<a href="{{ url_for('user.list') }}">list users</a>
 {% endif %}
 {% endblock %}

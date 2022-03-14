@@ -1,13 +1,20 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, abort, current_app
 from flask_login import current_user, login_required
 
-from flask_arch.builtins import AuthArch, UserManageArch, PasswordAuth, privileges
+from flask_arch import tags
+from flask_arch.builtins import AuthArch, UserManageArch, PasswordAuth
 from flask_arch.user import ProcMemUser, ProcMemUserManager, BaseRole, access_policies, no_role
 from flask_arch.exceptions import UserError
 from flask_arch.utils import parse_boolean
 
-admin_role = BaseRole('admin', [privileges.USERSEL, privileges.USERADD, privileges.USERMOD, privileges.USERDEL])
-paid_role = BaseRole('premium', ['select.treasure'])
+admin_role = BaseRole.create_default_with_form(name='admin')
+admin_role.set_list_privileges(
+        ['user.view', 'user.add', 'user.mod', 'user.del']
+)
+paid_role = BaseRole.create_default_with_form(name='premium')
+paid_role.set_list_privileges(
+        ['my_privilege']
+)
 
 class VolatileManagedUser(ProcMemUser):
 
@@ -22,37 +29,30 @@ class VolatileManagedUser(ProcMemUser):
     def get_own_roles(self):
         return [admin_role, paid_role, no_role]
 
-    @classmethod
-    def create(cls, data):
-        # created by an admin
-        if data['password'] != data['password_confirm']:
-            raise UserError('password do not match', 400)
-        nu = cls(data['username'], data['password'])
-
-        trole = data['role']
-        if trole == 'admin':
-            nu.role = admin_role
-        elif trole == 'premium':
-            nu.role = paid_role
-        else:
-            nu.role = no_role
-
-        return nu
-
-    def update(self, data):
-        # updated by an admin
-
-        trole = data['role']
-        if trole == 'admin':
+    def set_role(self, role):
+        if role == 'admin':
             self.role = admin_role
-        elif trole == 'premium':
+        elif role == 'premium':
             self.role = paid_role
         else:
             self.role = no_role
 
-    def delete(self, data):
-        # deleted by an admin
-        pass
+    def __init__(self, rp, actor):
+        super().__init__(rp, actor)
+        self.role = no_role
+
+        if actor != self:
+            # user is being updated by another user (probably an admin)
+            if rp.form.get('role'):
+                self.set_role(rp.form['role'])
+
+    def modify(self, rp, actor):
+        super().modify(rp, actor)
+
+        if actor != self:
+            # user is being updated by another user (probably an admin)
+            if rp.form.get('role'):
+                self.set_role(rp.form['role'])
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -63,15 +63,15 @@ def create_app(test_config=None):
 
     userman = ProcMemUserManager(PasswordAuth, user_class=VolatileManagedUser)
 
-    u = userman.construct('jason', 'hunter2')
+    u = userman.Content.create_default_with_form(username='jason', password='hunter2')
     u.role = admin_role
     userman.insert(u)
 
-    u = userman.construct('john', 'asd')
+    u = userman.Content.create_default_with_form(username='john', password='asd')
     u.role = paid_role
     userman.insert(u)
 
-    u = userman.construct('james', 'test')
+    u = userman.Content.create_default_with_form(username='james', password='test')
     userman.insert(u)
 
     # for login
@@ -79,7 +79,17 @@ def create_app(test_config=None):
     auth_arch.init_app(app)
 
     # for user manag
-    userman_arch = UserManageArch(userman)
+    userman_arch = UserManageArch(userman, custom_callbacks={
+        'add':{
+            tags.SUCCESS: lambda rb, e: rb.flash(f'useradd successful', 'ok')
+            },
+        'mod':{
+            tags.SUCCESS: lambda rb, e: rb.flash(f'usermod successful', 'ok')
+            },
+        'del':{
+            tags.SUCCESS: lambda rb, e: rb.flash(f'userdel successful', 'ok')
+            }
+        })
     userman_arch.init_app(app)
 
     @app.route('/')
@@ -87,7 +97,7 @@ def create_app(test_config=None):
         return redirect(url_for('auth.login'))
 
     @app.route('/treasure')
-    @access_policies.privilege_required('select.treasure')
+    @access_policies.privilege_required('my_privilege')
     def treasure():
         return 'secret'
 

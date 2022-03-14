@@ -1,7 +1,6 @@
 {% extends 'layouts/with_nav.html' %}
 
 {% block title %}{% endblock %}
-{% block header %}{% endblock %}
 
 {% block stylesheets %}
 {% endblock %}
@@ -9,10 +8,13 @@
 {% block content %}
 <div class="container">
 
-    <form method='post'>
+    <form method='post' enctype='multipart/form-data'>
 
         <label>project name</label></br>
         <input name="name" required></br>
+
+        <label>project image</label></br>
+        <input name='project_img' type='file' required></br>
 
         {% include "includes/csrf_token.html" %}<br>
         <button type="submit">create project</button>

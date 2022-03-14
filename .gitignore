@@ -16,4 +16,5 @@ oldref/*
 
 # ignore test databases
 examples/*.db
+examples/uploads/*
 *.db

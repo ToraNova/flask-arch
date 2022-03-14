@@ -7,61 +7,32 @@ from flask_arch.utils import parse_boolean
 
 class MyAuth(PasswordAuth):
 
-    def __init__(self, email, username, role_id, password):
-        super().__init__(email, password)
-        self.role_id = role_id
-        self.name = username # username is extra, not used to identify the user
+    @classmethod
+    def parse_auth_data(cls, rp):
+        identifier = rp.form[cls.userid] # based on what 'userid' is, in this case it's email
+        supplied_auth_data = rp.form['password']
+        return identifier, supplied_auth_data
 
     @classmethod
-    def parse_auth_data(cls, data):
-        email = data['email']
-        supplied_auth_data = data['password']
-        return email, supplied_auth_data
-
-    @classmethod
-    def parse_reset_data(cls, data):
-        # this is just one way, alternatively, data['email'] can also be used
+    def parse_reset_data(cls, rp):
+        # this is just one way, alternatively, jd['email'] can also be used
         # the function is required for the user_manager to 'select' the right user
         # to perform password reset
-        jd = jwt.decode(data['jwt'], options={"verify_signature": False})
-        return jd['email']
+        jd = jwt.decode(rp.form['jwt'], options={"verify_signature": False})
+        identifier = jd[cls.userid]
+        return identifier
 
-    def reset(self, data):
+    def reset(self, rp):
         # use the user's authentication data as the key to the jwt,
         # this effectively allows one-time password resets per password
         try:
-            jd = jwt.decode(data['jwt'], self.authd, algorithms=["HS256"])
+            jd = jwt.decode(rp.form['jwt'], self.authd, algorithms=["HS256"])
         except Exception as e:
-            raise UserError('invalid token', 401)
-        if data['password_new'] != data['password_confirm']:
-            raise UserError('password do not match', 400)
-        if jd['email'] != self.email:
+            raise UserError(401, 'invalid token')
+        if jd[self.userid] != self.get_id():
             # we should never reach here
-            raise UserError('email do not match', 401)
+            raise UserError(401, 'identifier do not match')
+        if rp.form['password_new'] != rp.form['password_confirm']:
+            raise UserError(400, 'password do not match')
 
-        self.set_auth_data(data['password_confirm'])
-
-    @classmethod
-    def create(cls, data):
-        # created by an admin
-        if data['password'] != data['password_confirm']:
-            raise UserError('password do not match', 400)
-        nu = cls(data['email'], data['username'], data['role_id'], data['password'])
-        return nu
-
-    @classmethod
-    def register(cls, data):
-        #self register
-        if data['password'] != data['password_confirm']:
-            raise UserError('password do not match', 400)
-        # jwt is obtained from email verify request
-        print(data)
-        jd = jwt.decode(data['jwt'], current_app.secret_key, algorithms=["HS256"])
-        nu = cls(jd['email'], data['username'], None, data['password'])
-        return nu
-
-    def update(self, data):
-        self.role_id = data['role_id']
-
-    def delete(self, data):
-        pass
+        self.set_auth_data(rp.form['password_confirm'])

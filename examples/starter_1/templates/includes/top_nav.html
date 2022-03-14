@@ -19,8 +19,8 @@
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="topNavdropdown1" data-bs-toggle="dropdown" aria-expanded="false">sys</a>
                 <ul class="dropdown-menu" aria-labelledby="topNavdropdown1">
-                    <li><a class="dropdown-item" href="{{ url_for('userman.userlst') }}">list users</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('role.select') }}">list roles</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('user.list') }}">list users</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('role.list') }}">list roles</a></li>
                 </ul>
             </li>
 
@@ -28,7 +28,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="topNavdropdown2" data-bs-toggle="dropdown" aria-expanded="false">projects</a>
                 <ul class="dropdown-menu" aria-labelledby="topNavdropdown2">
                     <li><a class="dropdown-item" href="{{ url_for('project.insert') }}">new project</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('project.select') }}">list projects</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('project.list') }}">list projects</a></li>
                 </ul>
             </li>
             <!--

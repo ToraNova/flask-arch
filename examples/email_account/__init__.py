@@ -9,13 +9,27 @@ from flask_arch.exceptions import UserError
 from flask_arch.user import volatile, persist
 
 from flask_arch.cms import SQLDBConnection
-from flask_arch.cms import declarative_base, declared_attr, Column, String
+
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr, declarative_base
 
 class MyVolatileUser(volatile.procmem.User):
-    userid = 'email'
+
+    def __init__(self, rp, actor):
+        super().__init__(rp, actor)
+        jd = jwt.decode(rp.form['jwt'], current_app.secret_key, algorithms=["HS256"])
+        self.name = rp.form['username']
+        self.email = jd['email']
+        self.id = jd['email']
 
 class MyPersistUser(persist.sql.User):
     userid = 'email'
+
+    def __init__(self, rp, actor):
+        super().__init__(rp, actor)
+        jd = jwt.decode(rp.form['jwt'], current_app.secret_key, algorithms=["HS256"])
+        self.email = jd['email']
 
     @declared_attr
     def email(cls):
@@ -23,47 +37,36 @@ class MyPersistUser(persist.sql.User):
 
 
 class MyPasswordAuth(PasswordAuth):
-    def __init__(self, email, username, password):
-        super().__init__(email, password)
-        self.name = username # username is extra, not used to identify the user
 
     @classmethod
-    def parse_auth_data(cls, data):
-        email = data['email']
-        supplied_auth_data = data['password']
+    def parse_auth_data(cls, rp):
+        email = rp.form['email']
+        supplied_auth_data = rp.form['password']
         return email, supplied_auth_data
 
     @classmethod
-    def parse_reset_data(cls, data):
+    def parse_reset_data(cls, rp):
         # this is just one way, alternatively, data['email'] can also be used
         # the function is required for the user_manager to 'select' the right user
         # to perform password reset
-        jd = jwt.decode(data['jwt'], options={"verify_signature": False})
-        return jd['email']
+        jd = jwt.decode(rp.form['jwt'], options={"verify_signature": False})
+        identifier = jd['email']
+        return identifier
 
-    def reset(self, data):
+    def reset(self, rp):
         # use the user's authentication data as the key to the jwt,
         # this effectively allows one-time password resets per password
         try:
-            jd = jwt.decode(data['jwt'], self.authd, algorithms=["HS256"])
+            jd = jwt.decode(rp.form['jwt'], self.authd, algorithms=["HS256"])
         except Exception as e:
-            raise UserError('invalid token', 401)
-        if data['password_new'] != data['password_confirm']:
-            raise UserError('password do not match', 400)
+            raise UserError(401, 'invalid token')
         if jd['email'] != self.email:
             # we should never reach here
-            raise UserError('email do not match', 401)
+            raise UserError(401, 'email do not match')
+        if rp.form['password_new'] != rp.form['password_confirm']:
+            raise UserError(400, 'password do not match')
 
-        self.set_auth_data(data['password_confirm'])
-
-    @classmethod
-    def register(cls, data):
-        if data['password'] != data['password_confirm']:
-            raise UserError('password do not match', 400)
-        # jwt is obtained from email verify request
-        jd = jwt.decode(data['jwt'], current_app.secret_key, algorithms=["HS256"])
-        nu = cls(jd['email'], data['username'], data['password'])
-        return nu
+        self.set_auth_data(rp.form['password_confirm'])
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -82,7 +85,7 @@ def create_app(test_config=None):
 
         um = SQLUserManager(MyPasswordAuth, db_conn, user_class=MyPersistUser)
 
-        if not um.table_exists():
+        if not um.table_exists:
             um.create_table()
 
     else:
