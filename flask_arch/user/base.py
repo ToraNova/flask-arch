@@ -18,7 +18,8 @@ class Role(Content):
         if set_1:
             pd[privilege] = 1
         else:
-            pd.pop(privilege)
+            if privilege in pd:
+                pd.pop(privilege)
         self.privileges = json.dumps(pd)
 
     def has_privilege(self, privilege):

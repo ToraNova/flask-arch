@@ -1,10 +1,11 @@
+import os
 import jwt
 import json
 from flask import current_app
 from werkzeug.datastructures import FileStorage
 
 from flask_arch.cms import SQLContent, DEFAULT
-from flask_arch.cms import file_storage, SIZE_MB
+from flask_arch.cms import file_storage, SIZE_MB, SIZE_KB
 from flask_arch.user import SQLUserWithRole, SQLRole
 from flask_arch.exceptions import UserError
 from flask_arch.utils import parse_boolean
@@ -15,10 +16,17 @@ from sqlalchemy.ext.declarative import declared_attr, declarative_base
 
 my_declarative_base = declarative_base()
 
+# TODO: remove this in production, only used for unit-testing
+upload_d = 'uploads'
+if os.environ.get('UPLOAD_DIR'):
+    upload_d = os.environ['UPLOAD_DIR']
+    print(upload_d)
+
 class MyRole(SQLRole, my_declarative_base):
 
     def set_json_privileges(self, jsonstr):
         po = json.loads(jsonstr)
+        self.privileges = '{}'
         for k, v in po.items():
             self.set_privilege(k, v)
 
@@ -34,7 +42,7 @@ class MyRole(SQLRole, my_declarative_base):
 
 
 # using file_storage for storing profile picture (EXAMPLE OF SINGULAR FILE MANAGEMENT)
-@file_storage(max_size=5*SIZE_MB, regex_whitelist=['jpe?g$', 'png$'])
+@file_storage(upload_dir=upload_d, max_size=80*SIZE_KB, regex_whitelist=['jpe?g$', 'png$'])
 class MyUser(SQLUserWithRole):
     userid = 'email' # indicate the user will login with 'email' as its identifier
 
@@ -97,7 +105,7 @@ class MyUser(SQLUserWithRole):
 # only allow files ending in jpg, jpeg and png
 # store the files separately for each content, with subdirectory created using the 'name' attribute
 # EXAMPLE OF MULTIPLE FILE HANDLING
-@file_storage(max_size=5*SIZE_MB, regex_whitelist=['jpe?g$', 'png$'], subdir_key='name')
+@file_storage(upload_dir=upload_d, max_size=5*SIZE_MB, regex_whitelist=['jpe?g$', 'png$'], subdir_key='name')
 class Project(SQLContent, my_declarative_base):
     __tablename__ = "project"
 

@@ -1,11 +1,11 @@
 language: python
+dist: bionic
 python:
-  - "3.8"
-  - "3.8-dev"  # 3.8 development branch
+  - "3.7-dev"
+  - "3.8-dev"
   - "3.9"
-  - "3.9-dev"  # 3.9 development branch
-  - "3.10"
-  - "3.10-dev" # 3.10
+  - "3.9-dev"
+  - "3.10" # 3.10
     #- "nightly"  # nightly build
 # command to install dependencies
 install:
@@ -15,4 +15,4 @@ install:
   - pip install -e .
 # command to run tests
 script:
-  - bash runtest.sh
+  - bash test_run.sh

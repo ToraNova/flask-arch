@@ -13,6 +13,8 @@ from . import transactionals
 from .models import MyRole, MyUser, Project, my_declarative_base
 from .auth import MyAuth
 
+from sqlalchemy.ext.declarative import declarative_base
+
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.secret_key = 'v3rypowerfuls3cret, or not. CHANGE THIS!@'

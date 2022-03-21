@@ -1,6 +1,8 @@
 #!/bin/sh
 
-. ../bin/activate
+. bin/activate
+
+cd examples
 
 #export FLASK_APP=auth_basic
 #export FLASK_APP=auth_database

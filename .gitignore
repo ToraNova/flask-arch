@@ -18,3 +18,4 @@ oldref/*
 examples/*.db
 examples/uploads/*
 *.db
+uploads/*

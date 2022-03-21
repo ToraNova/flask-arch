@@ -54,9 +54,8 @@ def enable_storage(
             store_dir = self.get_store_dir()
             filename = secure_filename(filename)
             path = os.path.join(store_dir, filename)
-            print(path)
             if not os.path.isfile(path):
-                raise INVALID_FNAME
+                raise FileNotFoundError('file not found')
             return path
 
         cls.get_file_path = get_file_path

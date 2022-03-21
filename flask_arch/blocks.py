@@ -2,7 +2,7 @@ from . import tags, exceptions
 from .utils import ensure_type, ensure_callable
 
 import traceback
-from jinja2.exceptions import TemplateNotFound
+from jinja2.exceptions import TemplateNotFound, UndefinedError
 from flask import redirect, url_for, flash, render_template, request, abort, current_app, make_response
 
 # late-binding vs. early binding
@@ -150,7 +150,13 @@ class RouteBlock:
         if e.reroute:
             return self.reroute()
         else:
-            return self.render(), e.code
+            try:
+                return self.render(), e.code
+            except UndefinedError:
+                # template variable undefined,
+                # likely something bad has happened
+                # (i.e., user posting to a route they're not supposed to)
+                self.abort(400)
 
     def client_error(self, e):
         if current_app.debug:
@@ -160,6 +166,9 @@ class RouteBlock:
         if isinstance(e, exceptions.UserError):
             # is a user error
             return self._handle_user_error(e)
+        elif isinstance(e, FileNotFoundError):
+            # file not found, 404
+            self.abort(404)
 
         self.abort(400) # response 4xx
 

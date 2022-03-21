@@ -7,6 +7,7 @@
 
     <h1>are you sure you want to remove user '{{target.name}}'?</h1>
     <form method="post">
+        {% include "includes/csrf_token.html" %}
         <button class="btn btn-danger mt-3" type="submit">delete account</button>
     </form>
 

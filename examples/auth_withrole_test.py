@@ -29,6 +29,7 @@ def test_admin_feature(client):
     assert resp.status_code == 200
     assert b'welcome jason, your role is admin' in resp.data
 
+
     resp = client.post('/user/add', data={'username': 'newuser', 'password':'newpass', 'password_confirm': 'newpass', 'role': 'no role'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
@@ -38,6 +39,13 @@ def test_admin_feature(client):
     assert b'newuser (no role)' in resp.data
     assert b'green">useradd successful' in resp.data
 
+    resp = client.get('/user/mod')
+    assert resp.status_code == 400
+
+    resp = client.get('/user/mod?id=newuser')
+    assert resp.status_code == 200
+    assert b'no role' in resp.data
+
     resp = client.post('/user/mod?id=newuser', data={'role': 'admin'}, follow_redirects=True)
     assert len(resp.history) == 1
     assert resp.status_code == 200
@@ -46,6 +54,13 @@ def test_admin_feature(client):
     assert b'james (no role)' in resp.data
     assert b'newuser (admin)' in resp.data
     assert b'green">usermod successful' in resp.data
+
+    resp = client.get('/user/del')
+    assert resp.status_code == 400
+
+    resp = client.get('/user/del?id=newuser')
+    assert resp.status_code == 200
+    assert b'remove user newuser?' in resp.data
 
     resp = client.post('/user/del?id=newuser', follow_redirects=True)
     assert len(resp.history) == 1

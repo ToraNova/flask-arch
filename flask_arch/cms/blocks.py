@@ -59,7 +59,6 @@ class FileBlock(ViewBlock):
         except Exception as e:
             return self.client_error(e)
 
-
 class PrepExecBlock(ManageBlock):
 
     def __init__(self, keyword, content_manager, **kwargs):
@@ -145,7 +144,8 @@ class DelBlock(PrepExecBlock):
     def initial(self):
         rp = RequestParser(request)
         c = self.content_manager.query(rp)
-        return self.render(target=c)
+        cv = c.view(rp, current_user)
+        return self.render(target=cv)
 
     def prepare(self, rp):
         c = self.content_manager.query(rp)
