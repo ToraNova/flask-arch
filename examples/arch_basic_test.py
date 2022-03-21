@@ -50,7 +50,7 @@ def test_get(client):
 
     resp = client.get('/myarch1/missing-template')
     assert resp.status_code == 500
-    assert b'template for missing: \'missing.html\' not found' in resp.data
+    assert b'template not found when rendering for missing: missing.html' in resp.data
 
     resp = client.get('/myarch2/reroute-test', follow_redirects=True)
     assert len(resp.history) == 1

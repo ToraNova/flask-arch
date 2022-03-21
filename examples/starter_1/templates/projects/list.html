@@ -3,15 +3,6 @@
 {% block title %}{% endblock %}
 
 {% block stylesheets %}
-<style>
-pre {
-    white-space: pre-wrap;       /* Since CSS 2.1 */
-    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-    white-space: -pre-wrap;      /* Opera 4-6 */
-    white-space: -o-pre-wrap;    /* Opera 7 */
-    word-wrap: break-word;       /* Internet Explorer 5.5+ */
-}
-</style>
 {% endblock %}
 
 {% block content %}
@@ -28,20 +19,22 @@ pre {
             <th scope="col">modified on</th>
             <th scope="col" colspan="2">actions</th>
         </tr>
-        {% for u in data %}
+        {% for d in data %}
         <tr>
-            <td>{{u.id}}</td>
-            <td><a class="btn btn-link" href="{{ url_for('project.view', id=u.id) }}">{{u.name}}</a></td>
-            <td>{{u.creator.name}}</td>
-            <td>{{u.created_on}}</td>
-            <td>{{u.updated_on}}</td>
+            <td>{{d.id}}</td>
+            <td><a class="btn btn-link" href="{{ url_for('project.view', id=d.id) }}">{{d.name}}</a></td>
+            <td>{{d.creator.name}}</td>
+            <td>{{d.created_on}}</td>
+            <td>{{d.updated_on}}</td>
 
-            <td><a class="btn btn-link" href="{{ url_for('project.update', id=u.id )}}">modify</a></td>
+            <td><a class="btn btn-link" href="{{ url_for('project.update', id=d.id )}}">modify</a></td>
 
-            <form action="{{ url_for('project.delete', id=u.id )}}" method='post'>
-                {% include "includes/csrf_token.html" %}
-                <td><button class="btn btn-link" type="submit">delete</button></td>
-            </form>
+            <td>
+                <form action="{{ url_for('project.delete', id=d.id )}}" method='post'>
+                    {% include "includes/csrf_token.html" %}
+                    <button class="btn btn-link" type="submit">delete</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </table>

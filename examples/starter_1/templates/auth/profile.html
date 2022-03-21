@@ -5,9 +5,27 @@
 {% block content %}
 <div class="container">
 
-    <h1>welcome {{ current_user.name }}</h1>
-    <a href="{{ url_for('auth.renew') }}">renew account</a>
-    <a href="{{ url_for('auth.remove') }}">delete account</a>
+    <div class="row">
+        <h1>welcome {{ target.name }}</h1>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <img width="50%" src="{{ url_for('auth.file', filename=target.profile_img) }}">
+
+            <br>
+            <hr>
+
+            <a class="btn btn-primary" href="{{ url_for('auth.renew') }}">renew account</a>
+            <a class="btn btn-danger" href="#{# url_for('auth.remove') #}">delete account</a>
+        </div>
+
+        <div class="col">
+        </div>
+    </div>
+
+
+
 
 </div>
 {% endblock %}

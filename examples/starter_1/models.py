@@ -1,6 +1,7 @@
 import jwt
 import json
 from flask import current_app
+from werkzeug.datastructures import FileStorage
 
 from flask_arch.cms import SQLContent, DEFAULT
 from flask_arch.cms import file_storage, SIZE_MB
@@ -32,6 +33,8 @@ class MyRole(SQLRole, my_declarative_base):
             self.set_json_privileges(rp.form['privileges'])
 
 
+# using file_storage for storing profile picture (EXAMPLE OF SINGULAR FILE MANAGEMENT)
+@file_storage(max_size=5*SIZE_MB, regex_whitelist=['jpe?g$', 'png$'])
 class MyUser(SQLUserWithRole):
     userid = 'email' # indicate the user will login with 'email' as its identifier
 
@@ -50,23 +53,27 @@ class MyUser(SQLUserWithRole):
             email = rp.form['email']
             self.role_id = rp.form['role_id']
 
+        # initialize default profile image
+        with open('wojak.jpg', 'rb') as fp:
+            self.profile_img = self.store_file(FileStorage(fp))
+
         self.email = email
 
     def modify(self, rp, actor):
+        #super().modify(rp, actor)
 
         if actor == self:
             # self update
-            if self.role and self.role.has_privilege('role.update_self'):
-                # has privilege to update self
-                self.role_id = rp.form['role_id']
+            if len(rp.files) > 0:
+                # profile picture update
+                new_pi_fp = rp.files['profile_img']
+                new_pi = self.store_file(new_pi_fp)
+                self.remove_file(self.profile_img)
+                self.profile_img = new_pi
+
         else:
             # other user is updating this person's profile
             # likely an admin
-            self.role_id = rp.form['role_id']
-
-        if self.role.has_privilege('role.update_self') or actor != self:
-            # user has privilege to update it's own role
-            # or the updator is not this user, therefore likely an admin
             self.role_id = rp.form['role_id']
 
     @classmethod
@@ -76,18 +83,21 @@ class MyUser(SQLUserWithRole):
 
     @declared_attr
     def email(cls):
-        return Column(String(254),unique=True,nullable=False)
+        return Column(String(254), unique=True, nullable=False)
 
     @declared_attr
     def role(cls):
         return relationship('MyRole', foreign_keys=[cls.role_id])
 
+    @declared_attr
+    def profile_img(cls):
+        return Column(String(255), unique=False, nullable=True)
 
 # allow Project contents to store files, each up to 5MB per upload
 # only allow files ending in jpg, jpeg and png
 # store the files separately for each content, with subdirectory created using the 'name' attribute
-#@file_storage(max_size=5*SIZE_MB, regex_whitelist=['jpe?g$', 'png$'], subdir_key='name')
-@file_storage(max_size=5*SIZE_MB, regex_whitelist=['jpe?g$', 'png$'])
+# EXAMPLE OF MULTIPLE FILE HANDLING
+@file_storage(max_size=5*SIZE_MB, regex_whitelist=['jpe?g$', 'png$'], subdir_key='name')
 class Project(SQLContent, my_declarative_base):
     __tablename__ = "project"
 
@@ -95,20 +105,33 @@ class Project(SQLContent, my_declarative_base):
         super().__init__(rp, actor)
         self.name = rp.form['name']
 
-        if len(rp.files) > 0:
-            # has some files for us to storre
-            path = self.store_file(rp.files['project_img'])
+        for f in rp.files.getlist('project_files'):
+            self.store_file(f)
+
+    def view(self, rp, actor):
+        if self.creator_id != actor.id:
+            raise UserError(403, 'cannot view, no ownership')
+        return self
 
     def modify(self, rp, actor):
         if self.creator_id != actor.id:
             raise UserError(403, 'cannot modify, no ownership')
         # only owners can modify
-        self.name = rp.form['name']
+        for k, v in rp.form.items():
+            if v == 'delete':
+                self.remove_file(k)
+
+        for f in rp.files.getlist('project_files'):
+            self.store_file(f)
 
     def deinit(self, rp, actor):
         if self.creator_id != actor.id:
             raise UserError(403, 'cannot delete, no ownership')
         # only owners can delete
+
+    def after_delete(self, rp, actor):
+        # delete every file if the content is deleted
+        self.remove_subdir()
 
     @declared_attr
     def id(cls):

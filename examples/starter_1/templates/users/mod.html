@@ -7,8 +7,8 @@
 
     <h1>usermod</h1>
     <form method="post">
-        <label>user role</label></br>
-        <select name="role_id">
+        <label class="form-label">user role</label>
+        <select class="form-control" name="role_id">
             {% for role in target.get_all_roles() %}
             {% if target.role_id == role.id %}
             <option value="{{role.id}}" selected>{{role.name}}</option>
@@ -18,7 +18,7 @@
             {% endfor %}
         </select>
         {% include "includes/csrf_token.html" %}
-        <button type="submit">update account</button>
+        <button class="btn btn-primary mt-3" type="submit">update account</button>
     </form>
 
 </div>

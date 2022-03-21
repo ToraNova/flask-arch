@@ -107,7 +107,7 @@ def test_1(volatile_client, persist_client):
         if volatile:
             assert b'red">AuthUser exists' in resp.data
         else:
-            assert b'orange">integrity error' in resp.data
+            assert b'red">integrity error' in resp.data
 
         resp = c.post('/auth/login', data={'email':'user@domain.com', 'password': 'newpass'}, follow_redirects=True)
         assert len(resp.history) == 1

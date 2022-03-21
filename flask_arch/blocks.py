@@ -1,3 +1,4 @@
+from . import tags, exceptions
 from .utils import ensure_type, ensure_callable
 
 import traceback
@@ -72,8 +73,8 @@ class RouteBlock:
     def render(self, **kwargs):
         try:
             return render_template(self.template, **kwargs)
-        except TemplateNotFound:
-            self.abort(make_response(f'template for {self.keyword}: \'{self.template}\' not found.', 500))
+        except TemplateNotFound as e:
+            return f'template not found when rendering for {self.keyword}: {str(e)}', 500
 
     def reroute(self, **kwargs):
         # reroute action
@@ -93,11 +94,11 @@ class RouteBlock:
     def finalize(self, arch_name):
         # called by the BaseArch init_app routines to ready up the block
         # ensure all configuration is done BEFORE this is called
-        if not callable(self.view):
-            raise NotImplementedError(f'{self.__class__.__name__} has no view method implemented.')
+        if not callable(self.route):
+            raise NotImplementedError(f'{self.__class__.__name__} has no route method implemented.')
 
         if callable(self.access_policy):
-            self.view = route_rewrap(self.access_policy, self.view)
+            self.route = route_rewrap(self.access_policy, self.route)
 
         self._arch_name = arch_name
 
@@ -144,17 +145,41 @@ class RouteBlock:
         else:
             return self == other
 
+    def _handle_user_error(self, e):
+        self.callback(tags.USER_ERROR, e)
+        if e.reroute:
+            return self.reroute()
+        else:
+            return self.render(), e.code
+
     def client_error(self, e):
         if current_app.debug:
-            traceback.print_exc()
             print('client_error', str(e))
-        self.abort(400)
+            traceback.print_exc()
+
+        if isinstance(e, exceptions.UserError):
+            # is a user error
+            return self._handle_user_error(e)
+
+        self.abort(400) # response 4xx
 
     def server_error(self, e):
+        # unexpected error (programmer/library fault)
         if current_app.debug:
+            print('server_error', str(e))
             traceback.print_exc()
+
+        if isinstance(e, exceptions.IntegrityError):
+            new_e = exceptions.UserError(409, f'integrity error', e)
+            e = new_e
+
+        if isinstance(e, exceptions.UserError):
+            return self._handle_user_error(e)
+
+        if current_app.debug:
             raise e
-        self.abort(500)
+
+        self.abort(500) # response 5xx
 
     def abort(self, code):
         abort(code)
@@ -164,10 +189,10 @@ class RouteBlock:
 
 class RenderBlock(RouteBlock):
 
-    def view(self):
+    def route(self):
         return self.render()
 
 class RerouteBlock(RouteBlock):
 
-    def view(self):
+    def route(self):
         return self.reroute()

@@ -5,10 +5,9 @@ from flask import abort
 from flask_login import LoginManager, login_required
 
 from .. import base, tags, callbacks
+from ..auth import AuthViewBlock, AuthFileBlock, AuthLoginBlock, AuthLogoutBlock, AuthRegisterBlock, AuthRenewBlock, AuthResetBlock, AuthRemoveBlock
 from ..auth.base import AuthManager
-from ..auth.blocks import LoginBlock, LogoutBlock, RegisterBlock, RenewBlock, ResetBlock, RemoveBlock
 from ..utils import ensure_type
-from ..blocks import RenderBlock
 
 # basic.Arch
 class Arch(base.Arch):
@@ -29,32 +28,35 @@ class Arch(base.Arch):
         UPDATE  = 'renew'
         RESET  = 'reset'
         DELETE  = 'remove'
+        FILE = 'file'
 
-        rb = RenderBlock(PROFILE, access_policy=login_required)
+        rb = AuthViewBlock(PROFILE, user_manager)
         self.add_route_block(rb)
 
-        rb = LoginBlock(LOGIN, user_manager, reroute_to=PROFILE)
+        rb = AuthFileBlock(FILE, user_manager)
         self.add_route_block(rb)
 
-        rb = LogoutBlock(LOGOUT, user_manager, reroute_to=LOGIN)
+        rb = AuthLoginBlock(LOGIN, user_manager, reroute_to=PROFILE)
         self.add_route_block(rb)
 
-        rb = RegisterBlock(INSERT, user_manager, reroute_to=LOGIN)
+        rb = AuthLogoutBlock(LOGOUT, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
-        rb = RenewBlock(UPDATE, user_manager, reroute_to=PROFILE)
+        rb = AuthRegisterBlock(INSERT, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
-        rb = ResetBlock(RESET, user_manager, reroute_to=LOGIN)
+        rb = AuthRenewBlock(UPDATE, user_manager, reroute_to=PROFILE)
         self.add_route_block(rb)
 
-        rb = RemoveBlock(DELETE, user_manager, reroute_to=LOGIN)
+        rb = AuthResetBlock(RESET, user_manager, reroute_to=LOGIN)
+        self.add_route_block(rb)
+
+        rb = AuthRemoveBlock(DELETE, user_manager, reroute_to=LOGIN)
         self.add_route_block(rb)
 
         for rb in self.route_blocks.values():
             rb.set_custom_callback(tags.SUCCESS, callbacks.default_success)
             rb.set_custom_callback(tags.USER_ERROR, callbacks.default_user_error)
-            rb.set_custom_callback(tags.INTEGRITY_ERROR, callbacks.default_int_error)
 
         self.login_manager = LoginManager()
 

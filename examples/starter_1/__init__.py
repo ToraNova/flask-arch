@@ -1,3 +1,4 @@
+from datetime import datetime, timezone, timedelta
 from flask import Flask, request, render_template, redirect, url_for, flash, abort, current_app
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
@@ -28,7 +29,7 @@ def create_app(test_config=None):
     userm = SQLUserManager(MyAuth, db_conn, user_class=MyUser)
 
     # for login/auth
-    aa = AuthArch(userm, custom_templates_dir='auth', custom_reroutes={'login': 'dashboard'})
+    aa = AuthArch(userm, custom_templates_dir='auth', custom_reroutes={'login': 'dashboard'}, routes_disabled=['remove'])
     aa.init_app(app)
 
     # for managing users
@@ -60,9 +61,9 @@ def create_app(test_config=None):
     if not projm.table_exists:
         projm.create_table()
 
-    def flash_error_and_redirect_to_select(rb, e):
+    def flash_error_and_redirect(rb, e):
         rb.flash(e.msg, 'err')
-        return redirect(url_for('project.select'))
+        e.reroute = True
 
     ca_proj = CMSArch(projm, 'project', custom_templates_dir='projects',
             # in this case, this will let any failed delete attempts due to user error
@@ -70,7 +71,7 @@ def create_app(test_config=None):
             # of course, we could always just create a delete.html under projects/ to not do this
             custom_callbacks={
                 'delete': {
-                    tags.USER_ERROR: flash_error_and_redirect_to_select
+                    tags.USER_ERROR: flash_error_and_redirect
                 }
             }
         )
@@ -90,7 +91,6 @@ def create_app(test_config=None):
             uma.privileges.VIEW, uma.privileges.ADD, uma.privileges.MOD, uma.privileges.DEL,
             ca_role.privileges.VIEW, ca_role.privileges.INSERT,
             ca_role.privileges.UPDATE, ca_role.privileges.DELETE,
-            'role.update_self', # custom privilege for updating own role, see models.py
             ca_proj.privileges.VIEW, ca_proj.privileges.INSERT,
             ca_proj.privileges.UPDATE, ca_proj.privileges.DELETE,
         ])
@@ -109,6 +109,12 @@ def create_app(test_config=None):
     csrf = CSRFProtect()
     csrf.init_app(app)
 
+    @app.template_filter()
+    def from_timestamp(val, fmt='%Y/%m/%d %H:%M'):
+        dt = datetime.fromtimestamp(val, tz=timezone.utc)
+        dt += timedelta(hours=8) # gmt+8
+        return dt.strftime(fmt)
+
     @app.route('/')
     def root():
         return redirect(url_for('auth.login'))
@@ -118,13 +124,6 @@ def create_app(test_config=None):
     @access_policies.login_required
     def dashboard():
         return render_template('dashboard.html')
-
-    @app.route('/upload_test', methods=['GET', 'POST'])
-    def upload_test():
-        if request.method == 'POST':
-            print(len(request.files.copy()))
-            print(type(request.files.get('test_file')))
-        return render_template('upload_test.html')
 
     transactionals.bootstrap(app, userm)
 

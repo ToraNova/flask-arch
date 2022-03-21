@@ -6,13 +6,15 @@
 <div class="container">
 
     <form method="post">
-        <label>new password</label></br>
-        <input name="password_new" type="password" required></br>
-        <label>confirm password</label></br>
-        <input name="password_confirm" type="password" required></br>
-        {% include "jwt_input.html" %}
+        <label class="form-label">new password</label>
+        <input class="form-control" name="password_new" type="password" required>
+
+        <label class="form-label">confirm password</label>
+        <input class="form-control" name="password_confirm" type="password" required>
+
+        {% include "includes/jwt_input.html" %}
         {% include "includes/csrf_token.html" %}
-        <button type="submit">reset password</button>
+        <button class="btn btn-warning" type="submit">reset password</button>
     </form>
 
 </div>

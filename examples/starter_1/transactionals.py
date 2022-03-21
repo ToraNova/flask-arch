@@ -43,7 +43,7 @@ def bootstrap(app, um):
                 user = um.select_user(identifier)
                 if user is None:
                     flash('invalid user', 'err')
-                    return render_template('get_email.html')
+                    return render_template('txnrq.html')
 
                 # using the user's current password hash as the secret key
                 # this way, if the user has reset their password, the token is no longer valid

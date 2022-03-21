@@ -12,7 +12,7 @@
             <th>username</th>
             <th>email</th>
             <th>role</th>
-            <th>actions</th>
+            <th colspan="2">actions</th>
         </tr>
         {% for u in data %}
         <tr>
@@ -21,6 +21,7 @@
             <td>{{u.email}}</td>
             <td>{{u.role}}</td>
             <td><a href="{{ url_for('user.mod', id=u.id )}}">modify</a></td>
+            <td><a href="{{ url_for('user.del', id=u.id )}}">delete</a></td>
         </tr>
         {% endfor %}
     </table>

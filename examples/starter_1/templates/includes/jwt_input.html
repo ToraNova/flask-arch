@@ -1,6 +1,6 @@
-<label>token</label></br>
+<label class="form-label">token</label>
 {% if 'token' in request.args %}
-    <input name="jwt" value="{{ request.args['token'] }}" required readonly></br>
+    <input class="form-control" name="jwt" value="{{ request.args['token'] }}" required readonly></br>
 {% else %}
-    <input name="jwt" value="" required></br>
+    <input class="form-control" name="jwt" value="" required></br>
 {% endif %}

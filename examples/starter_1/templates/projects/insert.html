@@ -10,14 +10,14 @@
 
     <form method='post' enctype='multipart/form-data'>
 
-        <label>project name</label></br>
-        <input name="name" required></br>
+        <label class="form-label">project name</label>
+        <input class="form-control" name="name" required>
 
-        <label>project image</label></br>
-        <input name='project_img' type='file' required></br>
+        <label class="form-label">upload project files</label>
+        <input class="form-control" type="file" name="project_files" multiple>
 
-        {% include "includes/csrf_token.html" %}<br>
-        <button type="submit">create project</button>
+        {% include "includes/csrf_token.html" %}
+        <button class="btn btn-primary mt-3" type="submit">create project</button>
 
     </form>
 </div>

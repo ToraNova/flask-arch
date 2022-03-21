@@ -8,6 +8,10 @@ class Content:
 
     id = None
 
+    def view(self, rp, actor):
+        # can be overwritten to only allow certain actors to view the content
+        return self
+
     def __init__(self, rp, actor):
         # user must define the creation behavior
         raise NotImplementedError(f'__init__(self, rp, actor) on {self.__class__.__name__} not implemented.')

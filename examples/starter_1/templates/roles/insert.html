@@ -17,15 +17,14 @@ pre {
 {% block content %}
 <div class="container">
     <form method='post'>
-        <label>role name</label></br>
-        <input name="name" required></br>
+        <label class="form-label">role name</label>
+        <input class="form-control" name="name" required>
 
-        <label>privileges</label><br>
-        <textarea name="privileges">{}</textarea>
+        <label class="form-label">privileges</label>
+        <textarea class="form-control" name="privileges">{}</textarea>
 
         {% include "includes/csrf_token.html" %}
-        <br>
-        <button type="submit">create role</button>
+        <button class="btn btn-primary mt-3" type="submit">create role</button>
 
     </form>
 </div>

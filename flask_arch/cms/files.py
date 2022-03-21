@@ -50,19 +50,37 @@ def enable_storage(
 
         cls.get_store_dir = get_store_dir
 
-        def read_file(self, filename, mode='rb'):
+        def get_file_path(self, filename):
             store_dir = self.get_store_dir()
             filename = secure_filename(filename)
             path = os.path.join(store_dir, filename)
-            if not os.path.isfile(path):
-                return None
             print(path)
+            if not os.path.isfile(path):
+                raise INVALID_FNAME
+            return path
+
+        cls.get_file_path = get_file_path
+
+        def stat_file(self, filename):
+            path = self.get_file_path(filename)
+            return os.stat(path)
+
+        cls.stat_file = stat_file
+
+        def read_file(self, filename, mode='rb'):
+            path = self.get_file_path(filename)
             fp = open(path, mode)
             return fp
 
         cls.read_file = read_file
 
         def store_file(self, file, store_name=None):
+            if len(file.filename) < 1 and file.content_length < 1:
+                # annoying flask/werkzeug issue that multiple input form somehow has an empty file
+                # do nothing, this is an empty file
+                #print("DEBUG: empty file, skipping")  # silently do not save empty files
+                return None
+
             if not os.path.exists(files_dir):
                 os.makedirs(files_dir, 0o755)
 
@@ -101,15 +119,33 @@ def enable_storage(
 
             # save the file
             file.save(path)
-            return path
+            return store_name
 
         cls.store_file = store_file
 
-        def list_files(self):
-            store_dir = self.get_store_dir()
-            return os.listdir(store_dir)
+        def list_subdir(self):
+            if subdir_key is not None and hasattr(self, subdir_key):
+                store_dir = self.get_store_dir()
+                return os.listdir(store_dir)
+            else:
+                # no subdir key, do not allow listing, object must save the file's own path
+                return []
 
-        cls.list_files = list_files
+        cls.list_subdir = list_subdir
+
+        def remove_file(self, filename):
+            path = self.get_file_path(filename)
+            os.remove(path)
+
+        cls.remove_file = remove_file
+
+        def remove_subdir(self):
+            for f in self.list_subdir():
+                self.remove_file(f)
+            store_dir = self.get_store_dir()
+            os.rmdir(store_dir)
+
+        cls.remove_subdir = remove_subdir
 
         return cls
 

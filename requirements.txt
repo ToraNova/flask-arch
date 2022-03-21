@@ -2,6 +2,7 @@ attrs==21.4.0
 blinker==1.4
 click==8.0.4
 Flask==2.0.3
+-e git+ssh://git@github.com/ToraNova/flask-arch.git@fbcfed2a9575e4fadd6d47fc809ec951727a498f#egg=flask_arch
 Flask-Login==0.5.0
 Flask-WTF==1.0.0
 greenlet==1.1.2

@@ -67,7 +67,7 @@ def test_create(client):
 
     resp = client.post('/database_test/register', data={'username':'newuser', 'password': 'newpass', 'password_confirm': 'newpass'}, follow_redirects=True)
     assert resp.status_code == 409
-    assert b'orange">integrity error' in resp.data
+    assert b'red">integrity error' in resp.data
 
     resp = client.post('/database_test/login', data={'username': 'newuser', 'password': 'newpass'}, follow_redirects=True)
     assert len(resp.history) == 1

@@ -26,7 +26,7 @@ from ... import base
 
 def make_session(engine, base):
     '''create a session and bind the Base query property to it'''
-    sess =  scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
+    sess = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
     base.query = sess.query_property()
     return sess
 

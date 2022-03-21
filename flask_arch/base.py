@@ -69,7 +69,7 @@ class Arch:
                     rb.callbacks[tag] = user_cb
 
             rb.finalize(self.name)
-            self.bp.add_url_rule(rb.url_rule, rb.keyword, rb.view, **rb.options)
+            self.bp.add_url_rule(rb.url_rule, rb.keyword, rb.route, **rb.options)
 
         app.register_blueprint(self.bp)
         #self._debug()  # enable for debugging

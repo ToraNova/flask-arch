@@ -8,13 +8,40 @@
 {% block content %}
 <div class="container">
 
-    <form method='post'>
+    <h1>{{ target.name }}</h1>
+    <form method='post' enctype="multipart/form-data">
 
-        <label>project name</label></br>
-        <input name="name" required value="{{target.name}}"></br>
+        <h2>files</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>file</th>
+                    <th colspan="2">action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in target.list_subdir() %}
+                <tr>
+                    <td><a href="{{ url_for('project.file', id=target.id, filename=f) }}">{{f}}</a></td>
+                    <td>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="delete" name="{{f}}">
+                            <label class="form-check-label" for="{{f}}">
+                                delete?
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-        {% include "includes/csrf_token.html" %}<br>
-        <button type="submit">update project</button>
+        <label class="form-label">upload project files</label>
+        <input class="form-control" type="file" name="project_files" multiple>
+
+        {% include "includes/csrf_token.html" %}
+        <button class="btn btn-primary mt-3" type="submit">update project</button>
+
 
     </form>
 </div>

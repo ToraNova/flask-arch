@@ -7,15 +7,18 @@
 
     <h1>register</h1>
     <form method="post">
-        <label>username</label></br>
-        <input name="username" required></br>
-        <label>password</label></br>
-        <input name="password" type="password" required></br>
-        <label>confirm password</label></br>
-        <input name="password_confirm" type="password" required></br>
+        <label class="form-label">username</label>
+        <input class="form-control" name="username" required>
+
+        <label class="form-label">password</label>
+        <input class="form-control" name="password" type="password" required>
+
+        <label class="form-label">confirm password</label>
+        <input class="form-control" name="password_confirm" type="password" required>
+
         {% include "includes/jwt_input.html" %}
         {% include "includes/csrf_token.html" %}
-        <button type="submit">create account</button>
+        <button class="btn btn-primary" type="submit">create account</button>
     </form>
 
 </div>

@@ -12,7 +12,7 @@ class MyBlock(RouteBlock):
     def default_url_rule(self):
         return f'/{self.keyword}/<int:foo>'
 
-    def view(self, foo):
+    def route(self, foo):
         rscode = 200
         if request.method == 'POST':
             d = request.form.get('bar')
