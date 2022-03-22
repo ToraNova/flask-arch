@@ -1,0 +1,21 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <form method="post">
+        <label class="form-label">new password</label>
+        <input class="form-control" name="password_new" type="password" required>
+
+        <label class="form-label">confirm password</label>
+        <input class="form-control" name="password_confirm" type="password" required>
+
+        {% include "includes/jwt_input.html" %}
+        {% include "includes/csrf_token.html" %}
+        <button class="btn btn-warning" type="submit">reset password</button>
+    </form>
+
+</div>
+{% endblock %}

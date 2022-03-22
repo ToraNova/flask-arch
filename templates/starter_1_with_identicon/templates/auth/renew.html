@@ -1,0 +1,39 @@
+{% extends 'layouts/with_nav.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="row">
+        <form method="post", enctype="multipart/form-data">
+
+            <label class="form-label">profile image</label>
+            <input class="form-control" name="profile_img" type="file" required>
+
+            {% include "includes/csrf_token.html" %}
+            <button class="btn btn-primary mt-3 float-end" type="submit">update profile image</button>
+        </form>
+    </div>
+
+    <div class="row">
+        <form method="post">
+
+            <label class="form-label">old password</label>
+            <input class="form-control" name="password_old" type="password" required>
+
+            <label class="form-label">new password</label>
+            <input class="form-control" name="password_new" type="password" required>
+
+            <label class="form-label">confirm password</label>
+            <input class="form-control" name="password_confirm" type="password" required>
+
+            {% include "includes/csrf_token.html" %}
+            <div class="form-inline">
+                <button class="btn btn-warning mt-3 float-end" type="submit">change password</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

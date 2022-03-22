@@ -1,0 +1,38 @@
+{% extends 'layouts/with_nav.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="row">
+        <div class="col-3">
+            <div class="text-center">
+            <img width="rounded mx-auto d-block" src="{{ url_for('auth.file', filename=target.avatar_l) }}">
+            <h4>{{ target.name }}</h4>
+            </div>
+            <hr>
+
+            <div class="clearfix">
+                <p class="float-start">account type:</p>
+                <p class="float-end">{{current_user.role}}</p>
+            </div>
+            <div class="clearfix">
+                <p class="float-start">email:</p>
+                <p class="float-end">{{current_user.email}}</p>
+            </div>
+        </div>
+
+        <div class="col-9">
+            <ul>
+                <li><a class="btn btn-link" href="{{ url_for('auth.renew') }}">renew account</a></li>
+                <!--<li><a class="btn btn-link" href="#{# url_for('auth.remove') #}">delete account</a></li>-->
+                <li><a class="btn btn-link" href="{{ url_for('user.view', id=target.id)}}">public profile</a></li>
+            </ul>
+
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}

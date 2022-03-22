@@ -1,0 +1,20 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <h1>transaction request: {{txname}}</h1>
+    <form method="post">
+        <label class="form-label">email</label>
+        <input class="form-control" name="email" required>
+
+        {% include "includes/csrf_token.html" %}
+        <div class="form-group">
+        <button class="btn btn-primary mt-3" type="submit">send</button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

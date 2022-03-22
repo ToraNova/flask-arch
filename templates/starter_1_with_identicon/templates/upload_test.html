@@ -1,0 +1,14 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <form method='post' enctype='multipart/form-data'>
+        <input name='test_file' type='file' required><button type='submit'>upload</button>
+        {% include 'includes/csrf_token.html' %}
+    </form>
+
+</div>
+{% endblock %}

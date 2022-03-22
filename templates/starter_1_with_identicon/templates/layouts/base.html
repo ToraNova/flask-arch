@@ -1,0 +1,27 @@
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>{% block title %}{% endblock %}</title>
+
+        <link href="/static/bootstrap.min.css" rel="stylesheet" />
+        <script src="/static/bootstrap.bundle.min.js"></script>
+
+        {% block stylesheets %}{% endblock stylesheets %}
+    </head>
+
+    <body>
+
+        <main>
+
+            {% block content %}{% endblock %}
+
+        </main>
+
+        {% include "includes/toast_flash.html" %}
+
+        {% block javascripts %}{% endblock javascripts %}
+
+    </body>
+
+</html>

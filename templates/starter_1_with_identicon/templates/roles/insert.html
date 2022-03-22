@@ -1,0 +1,31 @@
+{% extends 'layouts/with_nav.html' %}
+
+{% block title %}{% endblock %}
+
+{% block stylesheets %}
+<style>
+pre {
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method='post'>
+        <label class="form-label">role name</label>
+        <input class="form-control" name="name" required>
+
+        <label class="form-label">privileges</label>
+        <textarea class="form-control" name="privileges">{}</textarea>
+
+        {% include "includes/csrf_token.html" %}
+        <button class="btn btn-primary mt-3" type="submit">create role</button>
+
+    </form>
+</div>
+{% endblock %}

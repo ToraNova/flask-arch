@@ -1,7 +1,7 @@
 from .. import base, tags, callbacks
 from ..utils import ensure_type
 from ..cms.base import ContentManager
-from ..cms import ContentLstBlock, ContentAddBlock, ContentModBlock, ContentDelBlock, ContentFileBlock
+from ..cms import ContentViewBlock, ContentLstBlock, ContentAddBlock, ContentModBlock, ContentDelBlock, ContentFileBlock
 from ..user.access_policies import privilege_required, Privileges
 
 class Arch(base.Arch):
@@ -17,6 +17,10 @@ class Arch(base.Arch):
         self.privileges.add('add')
         self.privileges.add('mod')
         self.privileges.add('del')
+
+        rb = ContentViewBlock('view', user_manager,
+                access_policy=privilege_required(self.privileges.VIEW))
+        self.add_route_block(rb)
 
         rb = ContentLstBlock(GRT, user_manager,
                 access_policy=privilege_required(self.privileges.VIEW))

@@ -1,0 +1,38 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="row mt-5">
+        <div class="col"></div>
+
+        <div class="col">
+            <h1 class="text-center">login</h1>
+            <form method="post">
+                <label class="form-label">email</label>
+                <input class="form-control" name="email" required>
+
+                <label class="form-label">password</label>
+                <input class="form-control" name="password" type="password" required>
+
+                {% include "includes/csrf_token.html" %}
+                <div class="form-inline mt-3">
+                    <!-- on the right side (end with rtl support) -->
+                    <button class="btn btn-link float-end" type="submit">sign in</button>
+
+                    <a class="btn btn-link" href="{{ url_for('create_account') }}">signup here</a>
+                    <a class="btn btn-link" href="{{ url_for('reset_password') }}">forgot password</a>
+                </div>
+            </form>
+
+        </div>
+
+        <div class="col"></div>
+    </div>
+
+</div>
+
+{% endblock %}
