@@ -8,15 +8,72 @@
 {% block content %}
 <div class="container">
 
-    <h1>{{ target.name }}</h1>
     <form method='post' enctype="multipart/form-data">
+        <h3>project edit</h3>
 
-        <h2>files</h2>
-        <table class="table">
+        <div class="row mt-3">
+            <div class="col">
+                <label class="form-label">project name</label>
+                <input class="form-control" name="name" value="{{ target.name }}" readonly required>
+            </div>
+            <div class="col">
+                <label class="form-label">status</label>
+                <select class="form-select" name="status">
+                    <option value="new">new</option>
+                    <option value="updated">updated</option>
+                </select>
+            </div>
+        </div>
+
+        <fieldset>
+            <hr>
+            <legend>business details</legend>
+
+        <div class="row mt-3">
+            <div class="col-4">
+                <label class="form-label">company (short)</label>
+                <input class="form-control" name="company_short" value="{{ target.company_short }}" required>
+            </div>
+
+            <div class="col-8">
+                <label class="form-label">company (full)</label>
+                <input class="form-control" name="company_full" value="{{ target.company_full}}" required>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-4">
+                <label class="form-label">customer (short)</label>
+                <input class="form-control" name="customer_short" value="{{ target.customer_short}}" required>
+            </div>
+
+            <div class="col-8">
+                <label class="form-label">customer (full)</label>
+                <input class="form-control" name="customer_full" value="{{ target.customer_full }}" required>
+            </div>
+        </div>
+
+        <div class="form-group mt-3">
+            <div class="form-check">
+                <label class="form-check-label">outsourced? to whom?</label>
+                <input class="form-check-input" type="checkbox" name="is_outsourced" value="1" {% if target.outsourced_to is not none %}checked{% endif %}>
+            </div>
+            <input class="form-control" name="outsourced_to" value="{{ target.outsourced_to }}">
+        </div>
+
+        </fieldset>
+
+        <div class="form-group mt-3">
+            <label class="form-label">upload project files</label>
+            <input class="form-control" type="file" name="project_files" multiple>
+        </div>
+
+        {% if target.list_subdir()|length > 0 %}
+        <table class="table mt-3">
             <thead>
                 <tr>
                     <th>file</th>
-                    <th colspan="2">action</th>
+                    <th>action</th>
                 </tr>
             </thead>
             <tbody>
@@ -25,7 +82,7 @@
                     <td><a href="{{ url_for('project.file', id=target.id, filename=f) }}">{{f}}</a></td>
                     <td>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="delete" name="{{f}}">
+                            <input class="form-check-input" type="checkbox" value="delete_file" name="{{f}}">
                             <label class="form-check-label" for="{{f}}">
                                 delete?
                             </label>
@@ -35,14 +92,17 @@
                 {% endfor %}
             </tbody>
         </table>
-
-        <label class="form-label">upload project files</label>
-        <input class="form-control" type="file" name="project_files" multiple>
+        {% else %}
+        <h4 class="mt-4">no uploaded files</h4>
+        {% endif %}
 
         {% include "includes/csrf_token.html" %}
-        <button class="btn btn-primary mt-3" type="submit">update project</button>
-
+        <hr>
+        <div class="clearfix">
+        <button class="btn btn-primary mt-3 float-end" type="submit">update project</button>
+        </div>
 
     </form>
+
 </div>
 {% endblock %}

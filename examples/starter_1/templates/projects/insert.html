@@ -8,16 +8,56 @@
 {% block content %}
 <div class="container">
 
-    <form method='post' enctype='multipart/form-data'>
+    <form method='post' enctype="multipart/form-data">
 
-        <label class="form-label">project name</label>
-        <input class="form-control" name="name" required>
+        <h3>new project</h3>
 
-        <label class="form-label">upload project files</label>
-        <input class="form-control" type="file" name="project_files" multiple>
+        <div class="form-group mt-3">
+            <label class="form-label">project name</label>
+            <input class="form-control" name="name" required>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col">
+                <label class="form-label">company (full)</label>
+                <input class="form-control" name="company_full" value="Mar Sara Mining Corp." required>
+            </div>
+
+            <div class="col">
+                <label class="form-label">company (short)</label>
+                <input class="form-control" name="company_short" value="MSMC" required>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col">
+                <label class="form-label">customer (full)</label>
+                <input class="form-control" name="customer_full" required>
+            </div>
+
+            <div class="col">
+                <label class="form-label">customer (short)</label>
+                <input class="form-control" name="customer_short" required>
+            </div>
+        </div>
+
+        <div class="form-group mt-3">
+            <div class="form-check">
+                <label class="form-check-label">outsourced? to whom?</label>
+                <input class="form-check-input" type="checkbox" name="is_outsourced" value="1">
+            </div>
+            <input class="form-control" name="outsourced_to" value="">
+        </div>
+
+        <div class="form-group mt-3">
+            <label class="form-label">upload project files</label>
+            <input class="form-control" type="file" name="project_files" multiple>
+        </div>
 
         {% include "includes/csrf_token.html" %}
-        <button class="btn btn-primary mt-3" type="submit">create project</button>
+        <div class="clearfix">
+            <button class="btn btn-primary mt-3 float-end" type="submit">create project</button>
+        </div>
 
     </form>
 </div>

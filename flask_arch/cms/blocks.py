@@ -113,7 +113,7 @@ class AddBlock(PrepExecBlock):
         self.content_manager.commit() # commit insertion
         c.after_insert(rp, current_user)
         self.callback(tags.SUCCESS, c.id)
-        return self.reroute()
+        return self.reroute(id=c.id)
 
 
 class ModBlock(PrepExecBlock):
@@ -136,7 +136,7 @@ class ModBlock(PrepExecBlock):
         self.content_manager.commit() # commit insertion
         c.after_update(rp, current_user)
         self.callback(tags.SUCCESS, c.id)
-        return self.reroute()
+        return self.reroute(id=c.id)
 
 
 class DelBlock(PrepExecBlock):
@@ -159,4 +159,4 @@ class DelBlock(PrepExecBlock):
         self.content_manager.commit() # commit insertion
         c.after_delete(rp, current_user)
         self.callback(tags.SUCCESS, c.id)
-        return self.reroute()
+        return self.reroute(id=c.id)

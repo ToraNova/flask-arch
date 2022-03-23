@@ -169,6 +169,9 @@ class RouteBlock:
         elif isinstance(e, FileNotFoundError):
             # file not found, 404
             self.abort(404)
+        elif isinstance(e, AttributeError):
+            # attribute error
+            self.abort(404)
 
         self.abort(400) # response 4xx
 

@@ -94,8 +94,8 @@ class RenewBlock(PrepExecBlock):
         self.auth_manager.update(u)
         self.auth_manager.commit() # commit update
         u.after_update(rp, u)
-        logout_user() # logout user from flask-login
-        login_user(u) # login the updated user
+        #logout_user() # logout user from flask-login
+        #login_user(u) # login the updated user
         self.callback(tags.SUCCESS, u.get_id())
         return self.reroute()
 

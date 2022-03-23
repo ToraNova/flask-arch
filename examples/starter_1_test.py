@@ -50,28 +50,30 @@ def test_all(client):
 
     # test obtain profile picture
     resp = client.get('/auth/profile')
-    mt = re.search(b'src="/auth/file\\?filename=(\\S+\\.jpg)"', resp.data)
+    mt = re.search(b'src="/auth/file\\?filename=(\\S+\\.png)"', resp.data)
     assert mt
     profimg_name = mt.group(1).decode()
     resp = client.get(f'/auth/file?filename={profimg_name}')
     assert resp.status_code == 200
 
     test_file = FileStorage(stream=open('doomer.jpg', "rb"),)
-    resp = client.get('/auth/renew')
+    resp = client.get('/update_avatar')
     csrf = parse_csrf(resp)
-    resp = client.post('/auth/renew', data={'profile_img':test_file, 'csrf_token':csrf}, content_type='multipart/form-data', follow_redirects=True)
-    assert resp.status_code == 400
+    resp = client.post('/update_avatar', data={'profile_img':test_file, 'csrf_token':csrf}, content_type='multipart/form-data', follow_redirects=True)
     assert b'invalid file size' in resp.data
 
     resp = client.get(f'/auth/file?filename={profimg_name}')
     assert resp.status_code == 200
 
     test_file = FileStorage(stream=open('wojak.jpg', "rb"),)
-    resp = client.get('/auth/renew')
+    resp = client.get('/update_avatar')
     csrf = parse_csrf(resp)
-    resp = client.post('/auth/renew', data={'profile_img':test_file, 'csrf_token':csrf}, content_type='multipart/form-data', follow_redirects=True)
+    resp = client.post('/update_avatar', data={'profile_img':test_file, 'csrf_token':csrf}, content_type='multipart/form-data', follow_redirects=True)
     assert resp.status_code == 200
-    mt = re.search(b'src="/auth/file\\?filename=(\\S+\\.jpg)"', resp.data)
+    csrf = parse_csrf(resp)
+
+    resp = client.post('/crop_avatar', data={'x': 0, 'y': 0, 'w': 150, 'h': 150, 'csrf_token':csrf}, follow_redirects=True)
+    mt = re.search(b'src="/auth/file\\?filename=(\\S+\\.png)"', resp.data)
     assert mt
     new_profimg_name = mt.group(1).decode()
     assert new_profimg_name != profimg_name
@@ -131,6 +133,9 @@ def test_all(client):
     resp = client.post('/role/update?id=1', data={'privileges':'{"user.view": 1, "user.add": 1, "user.mod": 1, "user.del": 1, "role.view": 1, "role.insert": 1, "role.update": 1, "role.delete": 1, "project.view": 1, "project.insert": 1, "project.update": 1, "project.delete": 1}', 'csrf_token': csrf}, follow_redirects=True)
     assert resp.status_code == 200
 
+    resp = client.get('/project/list')
+    assert resp.status_code == 200
+
     # MULTI-FILE UPLOAD
     resp = client.get('/project/insert')
     csrf = parse_csrf(resp)
@@ -148,6 +153,7 @@ def test_all(client):
     test_file = FileStorage(stream=open('doomer.jpg', "rb"),)
     resp = client.post('/project/insert', data={'name':'UPLOAD_TEST', 'csrf_token': csrf, 'project_files':[test_file]}, content_type='multipart/form-data', follow_redirects=True)
     assert b'UPLOAD_TEST' in resp.data
+    assert b'<td>new</td>' in resp.data
 
     resp = client.get('/project/view?id=1')
     mt = re.search(b'\\.jpg">(\\S+\\.jpg)</a>', resp.data)
@@ -161,20 +167,17 @@ def test_all(client):
     csrf = parse_csrf(resp)
 
     test_file = FileStorage(stream=open('wojak.jpg', "rb"),)
-    resp = client.post('/project/update?id=1', data={'project_files':[test_file], 'csrf_token':csrf}, follow_redirects=True, content_type='multipart/form-data')
+    resp = client.post('/project/update?id=1', data={'project_files':[test_file], 'status':'updated', 'csrf_token':csrf}, follow_redirects=True, content_type='multipart/form-data')
     assert resp.status_code == 200
-
-    resp = client.get('/project/view?id=1')
+    assert b'status: updated' in resp.data
     mt = re.findall(b'\\.jpg">(\\S+\\.jpg)</a>', resp.data)
     assert len(mt) == 2
 
     resp = client.get('/project/update?id=1')
     csrf = parse_csrf(resp)
 
-    resp = client.post('/project/update?id=1', data={filename:'delete', 'csrf_token':csrf}, follow_redirects=True, content_type='multipart/form-data')
+    resp = client.post('/project/update?id=1', data={filename:'delete_file', 'status':'updated', 'csrf_token':csrf}, follow_redirects=True, content_type='multipart/form-data')
     assert resp.status_code == 200
-
-    resp = client.get('/project/view?id=1')
     mt = re.findall(b'\\.jpg">(\\S+\\.jpg)</a>', resp.data)
     assert len(mt) == 1
     assert filename not in mt
@@ -193,19 +196,36 @@ def test_all(client):
     assert b'403 Forbidden' in resp.data
 
     resp = client.get('/project/list')
-    csrf = parse_csrf(resp)
     assert resp.status_code == 200
 
     resp = client.get('/project/view?id=1', follow_redirects=True)
     assert b'cannot view, no ownership' in resp.data
+
+    resp = client.get('/project/insert')
+    csrf = parse_csrf(resp)
+
+    test_file = FileStorage(stream=open('doomer.jpg', "rb"),)
+    resp = client.post('/project/insert', data={'name':'NEW_TEST', 'csrf_token': csrf, 'project_files':[test_file]}, content_type='multipart/form-data', follow_redirects=True)
+    assert b'NEW_TEST' in resp.data
+    assert b'UPLOAD_TEST' in resp.data
+
+    resp = client.get('/project/view?id=2')
+    mt = re.search(b'\\.jpg">(\\S+\\.jpg)</a>', resp.data)
+    assert mt
+
+    resp = client.get('/project/update?id=2')
+    assert resp.status_code == 200
     csrf = parse_csrf(resp)
 
     resp = client.get('/project/update?id=1', follow_redirects=True)
-    assert b'cannot view, no ownership' in resp.data
+    assert resp.status_code == 400
 
     resp = client.post('/project/update?id=1', data={left_over:'delete', 'csrf_token':csrf}, content_type='multipart/form-data', follow_redirects=True)
     assert resp.status_code == 400
     assert b'cannot modify, no ownership'
+
+    resp = client.get('/project/delete?id=2')
+    assert b'403 Forbidden' in resp.data
 
     resp = client.get('/project/delete?id=1', follow_redirects=True)
     assert b'403 Forbidden' in resp.data

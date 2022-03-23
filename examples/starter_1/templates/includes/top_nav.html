@@ -1,7 +1,7 @@
 <!--
     <nav class="navbar navbar-expand-sm navbar-dark bg-dark" aria-label="Top Navbar" id="topNavbar">
 -->
-<nav class="navbar navbar-expand-sm" aria-label="Top Navbar" id="topNavbar">
+<nav class="navbar navbar-expand-sm mb-3 py-3 px-5" aria-label="Top Navbar" id="topNavbar">
 <div class="container-fluid">
     <a class="navbar-brand" href="#">flask-arch</a>
 
@@ -11,10 +11,6 @@
 
     <div class="collapse navbar-collapse" id="topNavbar">
         <ul class="navbar-nav me-auto mb-2 mb-sm-0">
-            <li class="nav-item">
-                <!--<a class="nav-link active" aria-current="page" href="#">active</a>-->
-                <a class="nav-link" href="{{ url_for('auth.profile') }}">my profile</a>
-            </li>
 
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="topNavdropdown1" data-bs-toggle="dropdown" aria-expanded="false">sys</a>
@@ -41,6 +37,9 @@
 
     <div class="collapse navbar-collapse" id="topNavbar">
         <ul class="navbar-nav ms-auto mb-2 mb-sm-0">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('auth.profile') }}">my profile</a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('auth.logout') }}">logout</a>
             </li>

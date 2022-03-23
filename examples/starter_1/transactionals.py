@@ -1,7 +1,7 @@
 import jwt
 from flask import request, render_template, abort, current_app, url_for, flash
 
-def bootstrap(app, um):
+def init_app(app, um):
 
     # instead of going directly to register, user goes here first
     @app.route('/create_account', methods=['GET', 'POST'])

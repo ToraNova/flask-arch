@@ -9,7 +9,7 @@ from flask_arch.user import SQLUserManager, access_policies
 from flask_arch.cms import SQLContentManager, SQLDBConnection
 from flask_arch.exceptions import UserError
 
-from . import transactionals
+from . import transactionals, accounts
 from .models import MyRole, MyUser, Project, my_declarative_base
 from .auth import MyAuth
 
@@ -17,7 +17,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
-    app.secret_key = 'v3rypowerfuls3cret, or not. CHANGE THIS!@'
+    app.secret_key = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     app.config['DBURI'] = 'sqlite:///starter_1.db' # specify database uri
     app.testing = False
 
@@ -31,7 +31,9 @@ def create_app(test_config=None):
     userm = SQLUserManager(MyAuth, db_conn, user_class=MyUser)
 
     # for login/auth
-    aa = AuthArch(userm, custom_templates_dir='auth', custom_reroutes={'login': 'dashboard'}, routes_disabled=['remove'])
+    aa = AuthArch(userm, custom_templates_dir='auth',
+            routes_disabled=['remove'] # users can't delete their own account
+    )
     aa.init_app(app)
 
     # for managing users
@@ -50,7 +52,7 @@ def create_app(test_config=None):
 
         u = userm.Content.create_default_with_form(
                 email='user@test.d',
-                username='tifa',
+                username='uat',
                 role_id=2,
                 password='asdasd'
             )
@@ -63,18 +65,9 @@ def create_app(test_config=None):
     if not projm.table_exists:
         projm.create_table()
 
-    def flash_error_and_redirect(rb, e):
-        rb.flash(e.msg, 'err')
-        e.reroute = True
-
     ca_proj = CMSArch(projm, 'project', custom_templates_dir='projects',
-            # in this case, this will let any failed delete attempts due to user error
-            # to reroute to the select page
-            # of course, we could always just create a delete.html under projects/ to not do this
-            custom_callbacks={
-                'delete': {
-                    tags.USER_ERROR: flash_error_and_redirect
-                }
+            custom_reroutes={
+                'update': 'project.view'
             }
         )
     ca_proj.init_app(app)
@@ -117,6 +110,13 @@ def create_app(test_config=None):
         dt += timedelta(hours=8) # gmt+8
         return dt.strftime(fmt)
 
+    @app.template_filter()
+    def from_datetime(val, fmt='%Y/%m/%d %H:%M:%S'):
+        if isinstance(val, datetime):
+            return val.strftime(fmt)
+        else:
+            return 'no record'
+
     @app.route('/')
     def root():
         return redirect(url_for('auth.login'))
@@ -127,6 +127,7 @@ def create_app(test_config=None):
     def dashboard():
         return render_template('dashboard.html')
 
-    transactionals.bootstrap(app, userm)
+    transactionals.init_app(app, userm)
+    accounts.init_app(app, userm)
 
     return app

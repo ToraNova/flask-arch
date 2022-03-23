@@ -9,6 +9,36 @@ from .utils import resize_image, crop_image
 
 def init_app(app, userm):
 
+    @app.route('/update_avatar', methods=['GET', 'POST'])
+    @login_required
+    def update_avatar():
+        if request.method == 'POST':
+                uid = current_user.get_id()
+                u = userm.select_user(uid)
+                if len(request.files) > 0:
+                    # profile picture update
+                    try:
+                        new_pi_fp = request.files['profile_img']
+                        new_pi = u.store_file(new_pi_fp)
+                        old_avatar = u.avatar_raw
+                        u.avatar_raw = new_pi
+
+                        userm.update(u)
+                        userm.commit()
+
+                        try:
+                            u.remove_file(old_avatar)
+                        except Exception:
+                            pass
+
+                        return redirect(url_for('crop_avatar'))
+
+                    except Exception as e:
+                        userm.rollback()
+                        flash(str(e), 'err')
+
+        return render_template('auth/avatar.html')
+
     @app.route('/crop_avatar', methods=['GET', 'POST'])
     @login_required
     def crop_avatar():
@@ -47,6 +77,6 @@ def init_app(app, userm):
                 return redirect(url_for('auth.profile'))
             except Exception as e:
                 userm.rollback()
-                raise e
+                flash(str(e), 'err')
 
         return render_template('crop.html', img_url=url_for('auth.file', filename=current_user.avatar_raw))

@@ -6,25 +6,33 @@
 <div class="container">
 
     <div class="row">
-        <h1>welcome {{ target.name }}</h1>
-    </div>
-
-    <div class="row">
-        <div class="col">
-            <img width="50%" src="{{ url_for('auth.file', filename=target.profile_img) }}">
-
-            <br>
+        <div class="col-3">
+            <div class="text-center">
+            <img width="rounded mx-auto d-block" src="{{ url_for('auth.file', filename=target.avatar_l) }}">
+            <h4>{{ target.name }}</h4>
+            </div>
             <hr>
 
-            <a class="btn btn-primary" href="{{ url_for('auth.renew') }}">renew account</a>
-            <a class="btn btn-danger" href="#{# url_for('auth.remove') #}">delete account</a>
+            <div class="clearfix">
+                <p class="float-start">account type:</p>
+                <p class="float-end">{{current_user.role}}</p>
+            </div>
+            <div class="clearfix">
+                <p class="float-start">email:</p>
+                <p class="float-end">{{current_user.email}}</p>
+            </div>
         </div>
 
-        <div class="col">
+        <div class="col-9">
+            <ul>
+                <li><a class="btn btn-link" href="{{ url_for('auth.renew') }}">renew password</a></li>
+                <!--<li><a class="btn btn-link" href="#{# url_for('auth.remove') #}">delete account</a></li>-->
+                <li><a class="btn btn-link" href="{{ url_for('update_avatar') }}">update profile picture</a></li>
+                <li><a class="btn btn-link" href="{{ url_for('user.view', id=target.id)}}">public profile</a></li>
+            </ul>
+
         </div>
     </div>
-
-
 
 
 </div>

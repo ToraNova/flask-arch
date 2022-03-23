@@ -1,0 +1,21 @@
+{% extends 'layouts/with_nav.html' %}
+
+{% block title %}{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <form method='post'>
+        {% include "includes/csrf_token.html" %}
+        <h3>delete project: {{target.name}}?</h3>
+        <hr>
+        <div class="clearfix">
+        <button class="btn btn-danger mt-3 float-end" type="submit">yes, delete project</button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
