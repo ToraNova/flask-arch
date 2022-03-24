@@ -30,7 +30,7 @@ def create_app(test_config=None):
         # create table
         user_manager.create_table()
         # first time
-        u = user_manager.Content.create_default_with_form(username='jason', password='hunter2')
+        u = user_manager.Content.create_default_with_form(username='jason', password='hunter2', password_confirm='hunter2')
         user_manager.insert(u)
         user_manager.commit()
 

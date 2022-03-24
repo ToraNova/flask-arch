@@ -22,9 +22,8 @@ class Auth(base.Auth):
     def __init__(self, rp, actor):
         super().__init__(rp, actor)
 
-        if rp.form.get('password_confirm'):
-            if rp.form['password'] != rp.form['password_confirm']:
-                raise exceptions.UserError(400, 'password do not match')
+        if rp.form['password'] != rp.form['password_confirm']:
+            raise exceptions.UserError(400, 'password do not match')
         self.set_auth_data(rp.form['password'])
 
     def modify(self, rp, actor):
@@ -35,10 +34,9 @@ class Auth(base.Auth):
                 if not self.auth(rp.form['password_old']):
                     raise exceptions.UserError(401, 'invalid old password')
 
-                if rp.form.get('password_confirm'):
-                    if rp.form['password_new'] != rp.form['password_confirm']:
-                        raise exceptions.UserError(400, 'new password do not match')
-                self.set_auth_data(rp.form['password_confirm'])
+                if rp.form['password_new'] != rp.form['password_confirm']:
+                    raise exceptions.UserError(400, 'new password do not match')
+                self.set_auth_data(rp.form['password_new'])
 
     def deinit(self, rp, actor):
 

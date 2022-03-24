@@ -63,15 +63,15 @@ def create_app(test_config=None):
 
     userman = ProcMemUserManager(PasswordAuth, user_class=VolatileManagedUser)
 
-    u = userman.Content.create_default_with_form(username='jason', password='hunter2')
+    u = userman.Content.create_default_with_form(username='jason', password='hunter2', password_confirm='hunter2')
     u.role = admin_role
     userman.insert(u)
 
-    u = userman.Content.create_default_with_form(username='john', password='asd')
+    u = userman.Content.create_default_with_form(username='john', password='asd', password_confirm='asd')
     u.role = paid_role
     userman.insert(u)
 
-    u = userman.Content.create_default_with_form(username='james', password='test')
+    u = userman.Content.create_default_with_form(username='james', password='test', password_confirm='test')
     userman.insert(u)
 
     # for login

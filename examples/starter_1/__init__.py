@@ -46,7 +46,8 @@ def create_app(test_config=None):
                 email='admin@test.d',
                 username='jason',
                 role_id=1,
-                password='hunter2'
+                password='hunter2',
+                password_confirm='hunter2'
             )
         userm.insert(u)
 
@@ -54,7 +55,8 @@ def create_app(test_config=None):
                 email='user@test.d',
                 username='uat',
                 role_id=2,
-                password='asdasd'
+                password='asdasd',
+                password_confirm='asdasd'
             )
         userm.insert(u)
 
