@@ -8,7 +8,7 @@
     <h1>usermod</h1>
     <form method="post">
         <label class="form-label">user role</label>
-        <select class="form-control" name="role_id">
+        <select class="form-select" name="role_id">
             {% for role in target.get_all_roles() %}
             {% if target.role_id == role.id %}
             <option value="{{role.id}}" selected>{{role.name}}</option>

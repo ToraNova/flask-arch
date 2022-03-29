@@ -151,7 +151,23 @@ class RouteBlock:
             return self.reroute()
         else:
             try:
-                return self.render(), e.code
+                try:
+                    # the block has an 'initial function', try to do that first
+                    if hasattr(self, 'initial') and callable(self.initial):
+                        er = self.initial()
+                        if isinstance(er, tuple):
+                            return er
+                        return self.initial(), e.code
+
+                except exceptions.UserError as inner_e:
+                    # UserError was thrown again, this must be caused by initial
+                    # DO NOT call initial again
+                    return self.render(), inner_e.code
+
+                finally:
+                    # do vanilla rendering if no initial function found
+                    return self.render(), e.code
+
             except UndefinedError:
                 # template variable undefined,
                 # likely something bad has happened
